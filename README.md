@@ -107,6 +107,7 @@ OPENAI_MODEL=gpt-4o
 OPENAI_TIMEOUT_MS=20000
 OPENAI_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients
+EZTUTOR_MODE=template
 PORT=5000
 ```
 Run the backend (from repo root you can also run `npm run start-server`):
@@ -134,6 +135,12 @@ npm start
 - Basic input validation is enforced on lesson and quiz endpoints.  
 - Requests to `/api` are rate-limited (100 requests per 15 minutes per IP).  
 - If `EZTUTOR_API_KEY` is set, clients must send `x-api-key` in requests.  
+
+---
+
+## 💸 No‑Cost Mode
+- Set `EZTUTOR_MODE=template` to generate lesson plans and quizzes from local templates with **zero API cost**.  
+- If `OPENAI_API_KEY` is missing, the server automatically falls back to template mode.  
 
 ---
 

@@ -37,7 +37,7 @@ The goal is to keep the app **lean, fast, and immediately useful**, while laying
 |---------------|--------------------------------------|
 | Frontend      | React, TailwindCSS, Axios            |
 | Backend       | Node.js, Express                     |
-| AI Services   | OpenAI API (or Azure AI)             |
+| AI Services   | Groq API (free tier)                 |
 | Database      | MongoDB (for resource metadata)      |
 | File Storage  | Cloudinary / Firebase Storage        |
 | Auth (future) | Firebase Auth / Auth0                |
@@ -102,10 +102,10 @@ npm install
 ```
 Create a `.env` file (or copy `.env.example`):
 ```
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4o
-OPENAI_TIMEOUT_MS=20000
-OPENAI_MAX_RETRIES=2
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama3-8b-8192
+GROQ_TIMEOUT_MS=20000
+GROQ_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients
 PORT=5000
 ```

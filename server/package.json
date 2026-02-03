@@ -14,7 +14,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^7.5.1",
-    "openai": "^6.17.0"
+    "groq-sdk": "^0.7.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",

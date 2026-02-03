@@ -1,16 +1,17 @@
-const OpenAI = require('openai');
+const GroqSdk = require('groq-sdk');
 
 let client;
 
 function initClient() {
   if (!client) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not set in environment');
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY not set in environment');
     }
-    const timeout = Number(process.env.OPENAI_TIMEOUT_MS || 20000);
-    const maxRetries = Number(process.env.OPENAI_MAX_RETRIES || 2);
-    client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    const timeout = Number(process.env.GROQ_TIMEOUT_MS || 20000);
+    const maxRetries = Number(process.env.GROQ_MAX_RETRIES || 2);
+    const Groq = GroqSdk.default || GroqSdk;
+    client = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
       timeout,
       maxRetries,
     });
@@ -18,7 +19,7 @@ function initClient() {
   return client;
 }
 
-const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o';
+const DEFAULT_MODEL = process.env.GROQ_MODEL || 'llama3-8b-8192';
 
 const lessonPlanSchema = {
   name: 'lesson_plan',
@@ -94,13 +95,13 @@ const quizSchema = {
 };
 
 async function generateLessonPlan({ subject, topic }) {
-  const openai = initClient();
+  const groq = initClient();
 
   const messages = [
     {
       role: 'system',
       content:
-        'You are a helpful curriculum assistant. Return concise, classroom-ready content in valid JSON that matches the provided schema.',
+        'You are a helpful curriculum assistant. Return concise, classroom-ready content in valid JSON only. Schema: {title, subject, topic, objectives[], keyPoints[], activities[], assessmentIdeas[], materials[], differentiation[]}.',
     },
     {
       role: 'user',
@@ -108,28 +109,24 @@ async function generateLessonPlan({ subject, topic }) {
     },
   ];
 
-  const resp = await openai.chat.completions.create({
+  const resp = await groq.chat.completions.create({
     model: DEFAULT_MODEL,
     messages,
     max_tokens: 1000,
-    response_format: {
-      type: 'json_schema',
-      json_schema: lessonPlanSchema,
-    },
   });
 
   const content = resp?.choices?.[0]?.message?.content || '';
-  return JSON.parse(content);
+  return parseJsonResponse(content, lessonPlanSchema.name);
 }
 
 async function generateQuiz({ topic, difficulty }) {
-  const openai = initClient();
+  const groq = initClient();
 
   const messages = [
     {
       role: 'system',
       content:
-        'You are a helpful teacher assistant. Return concise, classroom-ready content in valid JSON that matches the provided schema.',
+        'You are a helpful teacher assistant. Return concise, classroom-ready content in valid JSON only. Schema: {topic, difficulty, mcq[{question, options[], answerIndex, explanation}], shortAnswer[{question, sampleAnswer}], essay[{question, guidance}]}.',
     },
     {
       role: 'user',
@@ -137,21 +134,35 @@ async function generateQuiz({ topic, difficulty }) {
     },
   ];
 
-  const resp = await openai.chat.completions.create({
+  const resp = await groq.chat.completions.create({
     model: DEFAULT_MODEL,
     messages,
     max_tokens: 1000,
-    response_format: {
-      type: 'json_schema',
-      json_schema: quizSchema,
-    },
   });
 
   const content = resp?.choices?.[0]?.message?.content || '';
-  return JSON.parse(content);
+  return parseJsonResponse(content, quizSchema.name);
 }
 
 module.exports = {
   generateLessonPlan,
   generateQuiz,
 };
+
+function parseJsonResponse(content, label) {
+  try {
+    return JSON.parse(content);
+  } catch (err) {
+    const start = content.indexOf('{');
+    const end = content.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) {
+      const slice = content.slice(start, end + 1);
+      try {
+        return JSON.parse(slice);
+      } catch (innerErr) {
+        throw new Error(`Failed to parse ${label} JSON response`);
+      }
+    }
+    throw new Error(`Failed to parse ${label} JSON response`);
+  }
+}

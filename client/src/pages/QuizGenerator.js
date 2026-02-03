@@ -18,7 +18,13 @@ export default function QuizGenerator() {
     setQuiz(null);
     setLoading(true);
     try {
-      const res = await axios.post('/api/generate-quiz', { topic, difficulty });
+      const res = await axios.post(
+        '/api/generate-quiz',
+        { topic, difficulty },
+        {
+          baseURL: process.env.REACT_APP_API_BASE || '',
+        }
+      );
       setQuiz(res.data.quiz);
       const summary = {
         id: `quiz-${Date.now()}`,

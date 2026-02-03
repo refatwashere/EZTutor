@@ -18,7 +18,13 @@ export default function LessonPlan() {
     setLessonPlan(null);
     setLoading(true);
     try {
-      const res = await axios.post('/api/generate-lesson', { subject, topic });
+      const res = await axios.post(
+        '/api/generate-lesson',
+        { subject, topic },
+        {
+          baseURL: process.env.REACT_APP_API_BASE || '',
+        }
+      );
       setLessonPlan(res.data.lessonPlan);
       const summary = {
         id: `lesson-${Date.now()}`,

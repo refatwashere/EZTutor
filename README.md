@@ -154,6 +154,7 @@ npm start
 ## 🧭 Client ↔ Server Notes
 - The React app uses a CRA proxy to `http://localhost:5000`.  
 - Client calls should use the `/api/...` prefix to reach the backend.  
+- For production, set `REACT_APP_API_BASE` to your backend URL (e.g., `https://eztutor.onrender.com`).  
 
 ---
 

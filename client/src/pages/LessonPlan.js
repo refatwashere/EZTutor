@@ -4,6 +4,7 @@ import axios from 'axios';
 export default function LessonPlan() {
   const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('');
+  const [gradeLevel, setGradeLevel] = useState('');
   const [lessonPlan, setLessonPlan] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,12 +21,15 @@ export default function LessonPlan() {
     try {
       const res = await axios.post(
         '/api/generate-lesson',
-        { subject, topic },
+        { subject, topic, gradeLevel: gradeLevel.trim() || undefined },
         {
           baseURL: process.env.REACT_APP_API_BASE || '',
         }
       );
       setLessonPlan(res.data.lessonPlan);
+      if (res.data.lessonPlan && gradeLevel) {
+        res.data.lessonPlan.gradeLevel = gradeLevel;
+      }
       const summary = {
         id: `lesson-${Date.now()}`,
         type: 'lesson',
@@ -149,6 +153,12 @@ export default function LessonPlan() {
         value={topic}
         onChange={(e) => setTopic(e.target.value)}
       />
+      <input
+        className="input w-full"
+        placeholder="Grade Level (e.g., Grade 5)"
+        value={gradeLevel}
+        onChange={(e) => setGradeLevel(e.target.value)}
+      />
       <div className="flex flex-wrap gap-2">
         <button 
           className="btn btn-primary disabled:opacity-50"
@@ -188,6 +198,9 @@ export default function LessonPlan() {
             <div className="text-gray-700">
               {lessonPlan.subject || subject} • {lessonPlan.topic || topic}
             </div>
+            {lessonPlan.gradeLevel && (
+              <div className="text-sm text-gray-600">Grade: {lessonPlan.gradeLevel}</div>
+            )}
           </div>
 
           {lessonPlan.objectives?.length > 0 && (

@@ -9,7 +9,8 @@ returns structured JSON for predictable rendering in the UI.
 ```json
 {
   "subject": "Math",
-  "topic": "Fractions"
+  "topic": "Fractions",
+  "gradeLevel": "Grade 5"
 }
 ```
 
@@ -20,6 +21,7 @@ returns structured JSON for predictable rendering in the UI.
     "title": "Lesson Plan: Fractions",
     "subject": "Math",
     "topic": "Fractions",
+    "gradeLevel": "Grade 5",
     "objectives": ["..."],
     "keyPoints": ["..."],
     "activities": ["..."],
@@ -36,7 +38,14 @@ returns structured JSON for predictable rendering in the UI.
 ```json
 {
   "topic": "Renaissance",
-  "difficulty": "intermediate"
+  "difficulty": "intermediate",
+  "gradeLevel": "Grade 8",
+  "numQuestions": 6,
+  "questionWeights": {
+    "mcq": 50,
+    "shortAnswer": 30,
+    "essay": 20
+  }
 }
 ```
 
@@ -46,6 +55,7 @@ returns structured JSON for predictable rendering in the UI.
   "quiz": {
     "topic": "Renaissance",
     "difficulty": "intermediate",
+    "gradeLevel": "Grade 8",
     "mcq": [
       {
         "question": "…",

@@ -147,6 +147,9 @@ npm start
 ## 📦 Response Shape (Overview)
 - Lesson plan response contains structured fields like `objectives`, `keyPoints`, and `activities`.  
 - Quiz response contains `mcq`, `shortAnswer`, and `essay` arrays with answers.  
+- Optional: `gradeLevel` is included when provided.  
+- Optional: `numQuestions` can be used to control quiz length (3–12).  
+- Optional: `questionWeights` can set the mix (e.g., 50/30/20 for MCQ/Short/Essay).  
 
 ---
 

@@ -4,6 +4,11 @@ import axios from 'axios';
 export default function QuizGenerator() {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('basic');
+  const [gradeLevel, setGradeLevel] = useState('');
+  const [numQuestions, setNumQuestions] = useState(6);
+  const [weightMcq, setWeightMcq] = useState(50);
+  const [weightShort, setWeightShort] = useState(30);
+  const [weightEssay, setWeightEssay] = useState(20);
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,12 +25,25 @@ export default function QuizGenerator() {
     try {
       const res = await axios.post(
         '/api/generate-quiz',
-        { topic, difficulty },
+        {
+          topic,
+          difficulty,
+          gradeLevel: gradeLevel.trim() || undefined,
+          numQuestions: Number.isInteger(numQuestions) ? numQuestions : undefined,
+          questionWeights: {
+            mcq: weightMcq,
+            shortAnswer: weightShort,
+            essay: weightEssay,
+          },
+        },
         {
           baseURL: process.env.REACT_APP_API_BASE || '',
         }
       );
       setQuiz(res.data.quiz);
+      if (res.data.quiz && gradeLevel) {
+        res.data.quiz.gradeLevel = gradeLevel;
+      }
       const summary = {
         id: `quiz-${Date.now()}`,
         type: 'quiz',
@@ -113,9 +131,9 @@ export default function QuizGenerator() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">Quiz Generator</h2>
         <div className="flex gap-2">
-          <button className="btn btn-outline" onClick={() => setQuiz(null)}>
-            Clear
-          </button>
+        <button className="btn btn-outline" onClick={() => setQuiz(null)}>
+          Clear
+        </button>
         </div>
       </div>
       <p className="text-gray-600">
@@ -141,6 +159,12 @@ export default function QuizGenerator() {
         value={topic}
         onChange={(e) => setTopic(e.target.value)}
       />
+      <input
+        className="input w-full"
+        placeholder="Grade Level (e.g., Grade 8)"
+        value={gradeLevel}
+        onChange={(e) => setGradeLevel(e.target.value)}
+      />
       <select 
         className="input w-full"
         value={difficulty}
@@ -150,6 +174,45 @@ export default function QuizGenerator() {
         <option value="intermediate">Intermediate</option>
         <option value="advanced">Advanced</option>
       </select>
+      <input
+        className="input w-full"
+        type="number"
+        min="3"
+        max="12"
+        step="1"
+        value={numQuestions}
+        onChange={(e) => setNumQuestions(Number(e.target.value))}
+      />
+      <div className="text-sm text-gray-600">Question mix (must total 100)</div>
+      <div className="grid gap-2 md:grid-cols-3">
+        <input
+          className="input w-full"
+          type="number"
+          min="0"
+          max="100"
+          placeholder="MCQ %"
+          value={weightMcq}
+          onChange={(e) => setWeightMcq(Number(e.target.value))}
+        />
+        <input
+          className="input w-full"
+          type="number"
+          min="0"
+          max="100"
+          placeholder="Short %"
+          value={weightShort}
+          onChange={(e) => setWeightShort(Number(e.target.value))}
+        />
+        <input
+          className="input w-full"
+          type="number"
+          min="0"
+          max="100"
+          placeholder="Essay %"
+          value={weightEssay}
+          onChange={(e) => setWeightEssay(Number(e.target.value))}
+        />
+      </div>
       <div className="flex flex-wrap gap-2">
         <button 
           className="btn btn-secondary disabled:opacity-50"
@@ -187,6 +250,9 @@ export default function QuizGenerator() {
           <div>
             <div className="text-xl font-semibold">{quiz.topic || topic}</div>
             <div className="text-gray-700">Difficulty: {quiz.difficulty || difficulty}</div>
+            {quiz.gradeLevel && (
+              <div className="text-sm text-gray-600">Grade: {quiz.gradeLevel}</div>
+            )}
           </div>
 
           {quiz.mcq?.length > 0 && (

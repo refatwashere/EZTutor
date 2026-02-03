@@ -2,6 +2,10 @@ const GroqSdk = require('groq-sdk');
 
 let client;
 
+function shouldUseTemplateMode() {
+  return process.env.EZTUTOR_MODE === 'template';
+}
+
 function initClient() {
   if (!client) {
     if (!process.env.GROQ_API_KEY) {
@@ -95,6 +99,19 @@ const quizSchema = {
 };
 
 async function generateLessonPlan({ subject, topic }) {
+  if (shouldUseTemplateMode()) {
+    return {
+      title: `${subject}: ${topic} Lesson Plan`,
+      subject,
+      topic,
+      objectives: [`Define key terms related to ${topic}.`, `Explain why ${topic} matters.`],
+      keyPoints: [`Core idea of ${topic}.`, `Common misconceptions about ${topic}.`],
+      activities: [`Quick warm‑up on ${topic}.`, `Guided practice.`],
+      assessmentIdeas: [`Exit ticket: 2 quick questions.`],
+      materials: [`Slides/board`, `Handout`],
+      differentiation: [`Sentence stems`, `Extension challenge`],
+    };
+  }
   const groq = initClient();
 
   const messages = [
@@ -120,6 +137,37 @@ async function generateLessonPlan({ subject, topic }) {
 }
 
 async function generateQuiz({ topic, difficulty }) {
+  if (shouldUseTemplateMode()) {
+    return {
+      topic,
+      difficulty,
+      mcq: [
+        {
+          question: `Which statement best describes ${topic}?`,
+          options: [
+            `A core concept that explains ${topic}`,
+            `An unrelated idea to ${topic}`,
+            `A definition that contradicts ${topic}`,
+            `A random fact with no connection to ${topic}`,
+          ],
+          answerIndex: 0,
+          explanation: `Option A matches the central definition of ${topic}.`,
+        },
+      ],
+      shortAnswer: [
+        {
+          question: `Explain ${topic} in your own words.`,
+          sampleAnswer: `${topic} is a concept that ...`,
+        },
+      ],
+      essay: [
+        {
+          question: `How does ${topic} connect to the broader theme of this unit?`,
+          guidance: `Discuss main idea, example, and significance.`,
+        },
+      ],
+    };
+  }
   const groq = initClient();
 
   const messages = [

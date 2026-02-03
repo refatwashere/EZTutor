@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: eztutor-api
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    autoDeploy: true
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama3-8b-8192
+      - key: GROQ_TIMEOUT_MS
+        value: 20000
+      - key: GROQ_MAX_RETRIES
+        value: 2
+      - key: EZTUTOR_API_KEY
+        sync: false

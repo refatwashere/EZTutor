@@ -80,6 +80,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/health/groq', async (req, res) => {
+  try {
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(503).json({ status: 'missing_key' });
+    }
+    res.json({ status: 'ok' });
+  } catch (err) {
+    res.status(500).json({ status: 'error' });
+  }
+});
+
 // central error handler
 app.use(errorHandler);
 

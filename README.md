@@ -174,6 +174,7 @@ npm start
 
 ## 🩺 Health Check
 - `GET /health` returns uptime and a timestamp for monitoring.  
+- `GET /health/groq` checks for Groq API key availability.  
 
 ---
 

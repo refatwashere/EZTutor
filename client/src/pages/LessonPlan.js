@@ -195,7 +195,7 @@ export default function LessonPlan() {
               <div className="font-semibold">Objectives</div>
               <ul className="list-disc pl-6">
                 {lessonPlan.objectives.map((o, i) => (
-                  <li key={i}>{o}</li>
+                  <li key={i}>{String(o)}</li>
                 ))}
               </ul>
             </div>
@@ -206,7 +206,7 @@ export default function LessonPlan() {
               <div className="font-semibold">Key Points</div>
               <ul className="list-disc pl-6">
                 {lessonPlan.keyPoints.map((k, i) => (
-                  <li key={i}>{k}</li>
+                  <li key={i}>{String(k)}</li>
                 ))}
               </ul>
             </div>
@@ -217,7 +217,7 @@ export default function LessonPlan() {
               <div className="font-semibold">Suggested Activities</div>
               <ul className="list-disc pl-6">
                 {lessonPlan.activities.map((a, i) => (
-                  <li key={i}>{a}</li>
+                  <li key={i}>{String(a)}</li>
                 ))}
               </ul>
             </div>
@@ -228,7 +228,7 @@ export default function LessonPlan() {
               <div className="font-semibold">Assessment Ideas</div>
               <ul className="list-disc pl-6">
                 {lessonPlan.assessmentIdeas.map((a, i) => (
-                  <li key={i}>{a}</li>
+                  <li key={i}>{String(a)}</li>
                 ))}
               </ul>
             </div>
@@ -239,7 +239,7 @@ export default function LessonPlan() {
               <div className="font-semibold">Materials</div>
               <ul className="list-disc pl-6">
                 {lessonPlan.materials.map((m, i) => (
-                  <li key={i}>{m}</li>
+                  <li key={i}>{String(m)}</li>
                 ))}
               </ul>
             </div>
@@ -250,7 +250,7 @@ export default function LessonPlan() {
               <div className="font-semibold">Differentiation</div>
               <ul className="list-disc pl-6">
                 {lessonPlan.differentiation.map((d, i) => (
-                  <li key={i}>{d}</li>
+                  <li key={i}>{String(d)}</li>
                 ))}
               </ul>
             </div>

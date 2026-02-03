@@ -137,7 +137,8 @@ async function generateLessonPlan({ subject, topic }) {
   const resp = await createWithModelFallback(messages, lessonPlanSchema.name);
 
   const content = resp?.choices?.[0]?.message?.content || '';
-  return parseJsonResponse(content, lessonPlanSchema.name);
+  const parsed = parseJsonResponse(content, lessonPlanSchema.name);
+  return normalizeLessonPlan(parsed, { subject, topic });
 }
 
 async function generateQuiz({ topic, difficulty }) {
@@ -189,7 +190,8 @@ async function generateQuiz({ topic, difficulty }) {
   const resp = await createWithModelFallback(messages, quizSchema.name);
 
   const content = resp?.choices?.[0]?.message?.content || '';
-  return parseJsonResponse(content, quizSchema.name);
+  const parsed = parseJsonResponse(content, quizSchema.name);
+  return normalizeQuiz(parsed, { topic, difficulty });
 }
 
 module.exports = {
@@ -213,6 +215,75 @@ function parseJsonResponse(content, label) {
     }
     throw new Error(`Failed to parse ${label} JSON response`);
   }
+}
+
+function normalizeString(value, fallback = '') {
+  if (typeof value === 'string') return value;
+  if (value == null) return fallback;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') {
+    const name = value.name || value.title;
+    const desc = value.description || value.details;
+    if (name && desc) return `${name}: ${desc}`;
+    if (name) return String(name);
+    return JSON.stringify(value);
+  }
+  return fallback;
+}
+
+function normalizeStringArray(value, fallback = []) {
+  if (!Array.isArray(value)) return fallback;
+  return value.map((item) => normalizeString(item, '')).filter((v) => v !== '');
+}
+
+function normalizeLessonPlan(plan, fallback) {
+  const safe = plan && typeof plan === 'object' ? plan : {};
+  return {
+    title: normalizeString(safe.title, `${fallback.subject}: ${fallback.topic} Lesson Plan`),
+    subject: normalizeString(safe.subject, fallback.subject),
+    topic: normalizeString(safe.topic, fallback.topic),
+    objectives: normalizeStringArray(safe.objectives, []),
+    keyPoints: normalizeStringArray(safe.keyPoints, []),
+    activities: normalizeStringArray(safe.activities, []),
+    assessmentIdeas: normalizeStringArray(safe.assessmentIdeas, []),
+    materials: normalizeStringArray(safe.materials, []),
+    differentiation: normalizeStringArray(safe.differentiation, []),
+  };
+}
+
+function normalizeQuiz(quiz, fallback) {
+  const safe = quiz && typeof quiz === 'object' ? quiz : {};
+  const mcq = Array.isArray(safe.mcq) ? safe.mcq : [];
+  const shortAnswer = Array.isArray(safe.shortAnswer) ? safe.shortAnswer : [];
+  const essay = Array.isArray(safe.essay) ? safe.essay : [];
+
+  const normalizedMcq = mcq.map((q) => {
+    const options = normalizeStringArray(q?.options || [], []);
+    return {
+      question: normalizeString(q?.question, ''),
+      options,
+      answerIndex: Number.isInteger(q?.answerIndex) ? q.answerIndex : 0,
+      explanation: normalizeString(q?.explanation, ''),
+    };
+  });
+
+  const normalizedShort = shortAnswer.map((q) => ({
+    question: normalizeString(q?.question, ''),
+    sampleAnswer: normalizeString(q?.sampleAnswer, ''),
+  }));
+
+  const normalizedEssay = essay.map((q) => ({
+    question: normalizeString(q?.question, ''),
+    guidance: normalizeString(q?.guidance, ''),
+  }));
+
+  return {
+    topic: normalizeString(safe.topic, fallback.topic),
+    difficulty: normalizeString(safe.difficulty, fallback.difficulty),
+    mcq: normalizedMcq,
+    shortAnswer: normalizedShort,
+    essay: normalizedEssay,
+  };
 }
 
 async function createWithModelFallback(messages, label) {

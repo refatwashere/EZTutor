@@ -195,11 +195,11 @@ export default function QuizGenerator() {
               <ol className="list-decimal pl-6 space-y-2">
                 {quiz.mcq.map((q, i) => (
                   <li key={i}>
-                    <div>{q.question}</div>
+                    <div>{String(q.question)}</div>
                     <ul className="list-disc pl-6">
                       {q.options.map((opt, idx) => (
                         <li key={idx}>
-                          {opt}
+                          {String(opt)}
                           {q.answerIndex === idx ? (
                             <span className="ml-2 text-green-700">(Answer)</span>
                           ) : null}
@@ -219,8 +219,8 @@ export default function QuizGenerator() {
               <ol className="list-decimal pl-6 space-y-2">
                 {quiz.shortAnswer.map((q, i) => (
                   <li key={i}>
-                    <div>{q.question}</div>
-                    <div className="text-sm text-gray-700">Sample: {q.sampleAnswer}</div>
+                    <div>{String(q.question)}</div>
+                    <div className="text-sm text-gray-700">Sample: {String(q.sampleAnswer)}</div>
                   </li>
                 ))}
               </ol>
@@ -233,8 +233,8 @@ export default function QuizGenerator() {
               <ol className="list-decimal pl-6 space-y-2">
                 {quiz.essay.map((q, i) => (
                   <li key={i}>
-                    <div>{q.question}</div>
-                    <div className="text-sm text-gray-700">Guidance: {q.guidance}</div>
+                    <div>{String(q.question)}</div>
+                    <div className="text-sm text-gray-700">Guidance: {String(q.guidance)}</div>
                   </li>
                 ))}
               </ol>

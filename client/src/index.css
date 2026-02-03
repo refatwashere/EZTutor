@@ -1,0 +1,216 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: radial-gradient(1200px 800px at 20% -10%, #f2f4ff 0%, #ffffff 50%, #f7f5ff 100%);
+  color: #0f172a;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+:root {
+  --brand-ink: #0f172a;
+  --brand-muted: #475569;
+  --brand-surface: #ffffff;
+  --brand-surface-2: #f8fafc;
+  --brand-primary: #1d4ed8;
+  --brand-secondary: #0f766e;
+  --brand-accent: #7c3aed;
+  --brand-warm: #f59e0b;
+  --brand-border: #e2e8f0;
+  --brand-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --brand-radius: 16px;
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+  color: var(--brand-ink);
+}
+
+.page {
+  min-height: 100vh;
+  padding: 64px 24px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.container-wide {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section {
+  padding: 24px;
+  border-radius: var(--brand-radius);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--brand-border);
+  box-shadow: var(--brand-shadow);
+  backdrop-filter: blur(6px);
+}
+
+.card {
+  background: var(--brand-surface);
+  border: 1px solid var(--brand-border);
+  border-radius: var(--brand-radius);
+  box-shadow: var(--brand-shadow);
+}
+
+.section-card {
+  padding: 20px;
+}
+
+.btn {
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--brand-ink);
+  border-color: var(--brand-border);
+}
+
+.btn-outline.active {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
+}
+
+.btn-primary {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--brand-secondary);
+  color: white;
+}
+
+.btn-accent {
+  background: var(--brand-accent);
+  color: white;
+}
+
+.btn-warm {
+  background: var(--brand-warm);
+  color: #1f2937;
+}
+
+.input {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: white;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+
+.pill {
+  background: var(--brand-surface-2);
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--brand-muted);
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--brand-border);
+  backdrop-filter: blur(8px);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.fade-in {
+  animation: floatIn 400ms ease forwards;
+}
+
+.stagger > * {
+  opacity: 0;
+  animation: floatIn 400ms ease forwards;
+}
+
+.stagger > *:nth-child(1) {
+  animation-delay: 60ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 180ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 240ms;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}

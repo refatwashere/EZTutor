@@ -103,7 +103,7 @@ npm install
 Create a `.env` file (or copy `.env.example`):
 ```
 GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama3-8b-8192
+GROQ_MODEL=llama-3.1-8b-instant
 GROQ_TIMEOUT_MS=20000
 GROQ_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients

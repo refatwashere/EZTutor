@@ -23,7 +23,15 @@ function initClient() {
   return client;
 }
 
-const DEFAULT_MODEL = process.env.GROQ_MODEL || 'llama3-8b-8192';
+const MODEL_FALLBACKS = [
+  process.env.GROQ_MODEL,
+  'llama-3.1-8b-instant',
+  'llama-3.1-70b-versatile',
+].filter(Boolean);
+
+function pickModel(index = 0) {
+  return MODEL_FALLBACKS[Math.min(index, MODEL_FALLBACKS.length - 1)];
+}
 
 const lessonPlanSchema = {
   name: 'lesson_plan',
@@ -126,11 +134,7 @@ async function generateLessonPlan({ subject, topic }) {
     },
   ];
 
-  const resp = await groq.chat.completions.create({
-    model: DEFAULT_MODEL,
-    messages,
-    max_tokens: 1000,
-  });
+  const resp = await createWithModelFallback(messages, lessonPlanSchema.name);
 
   const content = resp?.choices?.[0]?.message?.content || '';
   return parseJsonResponse(content, lessonPlanSchema.name);
@@ -182,11 +186,7 @@ async function generateQuiz({ topic, difficulty }) {
     },
   ];
 
-  const resp = await groq.chat.completions.create({
-    model: DEFAULT_MODEL,
-    messages,
-    max_tokens: 1000,
-  });
+  const resp = await createWithModelFallback(messages, quizSchema.name);
 
   const content = resp?.choices?.[0]?.message?.content || '';
   return parseJsonResponse(content, quizSchema.name);
@@ -213,4 +213,26 @@ function parseJsonResponse(content, label) {
     }
     throw new Error(`Failed to parse ${label} JSON response`);
   }
+}
+
+async function createWithModelFallback(messages, label) {
+  const groq = initClient();
+  let lastErr;
+  for (let i = 0; i < MODEL_FALLBACKS.length; i += 1) {
+    const model = pickModel(i);
+    try {
+      return await groq.chat.completions.create({
+        model,
+        messages,
+        max_tokens: 1000,
+      });
+    } catch (err) {
+      lastErr = err;
+      const code = err?.code || err?.error?.code;
+      if (code !== 'model_decommissioned' && code !== 'invalid_request_error') {
+        break;
+      }
+    }
+  }
+  throw lastErr || new Error(`Failed to create ${label} with Groq models`);
 }

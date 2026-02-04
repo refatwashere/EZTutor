@@ -36,7 +36,14 @@ returns structured JSON for predictable rendering in the UI.
 ```json
 {
   "topic": "Renaissance",
-  "difficulty": "intermediate"
+  "difficulty": "intermediate",
+  "gradeLevel": "Grade 7",
+  "numQuestions": 10,
+  "questionWeights": {
+    "mcq": 0.6,
+    "shortAnswer": 0.3,
+    "essay": 0.1
+  }
 }
 ```
 
@@ -46,6 +53,13 @@ returns structured JSON for predictable rendering in the UI.
   "quiz": {
     "topic": "Renaissance",
     "difficulty": "intermediate",
+    "gradeLevel": "Grade 7",
+    "numQuestions": 10,
+    "questionWeights": {
+      "mcq": 0.6,
+      "shortAnswer": 0.3,
+      "essay": 0.1
+    },
     "mcq": [
       {
         "question": "…",
@@ -67,5 +81,97 @@ returns structured JSON for predictable rendering in the UI.
       }
     ]
   }
+}
+```
+
+## POST `/api/auth/signup`
+
+**Request**
+```json
+{
+  "email": "teacher@example.com",
+  "password": "password123"
+}
+```
+
+**Response**
+```json
+{
+  "token": "jwt_token_here"
+}
+```
+
+## POST `/api/auth/login`
+
+**Request**
+```json
+{
+  "email": "teacher@example.com",
+  "password": "password123"
+}
+```
+
+**Response**
+```json
+{
+  "token": "jwt_token_here"
+}
+```
+
+## GET `/api/auth/me`
+
+**Response**
+```json
+{
+  "id": 1,
+  "email": "teacher@example.com"
+}
+```
+
+## GET `/api/recents`
+
+**Response**
+```json
+{
+  "recents": [
+    {
+      "id": 12,
+      "type": "lesson",
+      "title": "Lesson Plan: Fractions",
+      "subtitle": "Grade 5 • Math",
+      "created_at": "2025-01-22T15:04:05.000Z"
+    }
+  ]
+}
+```
+
+## POST `/api/recents`
+
+**Request**
+```json
+{
+  "type": "quiz",
+  "title": "Quiz: Renaissance",
+  "subtitle": "Grade 7 • Intermediate"
+}
+```
+
+**Response**
+```json
+{
+  "id": 42,
+  "type": "quiz",
+  "title": "Quiz: Renaissance",
+  "subtitle": "Grade 7 • Intermediate",
+  "created_at": "2025-01-22T15:04:05.000Z"
+}
+```
+
+## DELETE `/api/recents`
+
+**Response**
+```json
+{
+  "ok": true
 }
 ```

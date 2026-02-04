@@ -84,6 +84,8 @@ export default function LessonPlan() {
     if (!lessonPlan) return;
     try {
       await navigator.clipboard.writeText(formatLessonPlanText(lessonPlan));
+      setToast('Lesson plan copied.');
+      setTimeout(() => setToast(''), 2000);
     } catch (err) {
       setError('Failed to copy to clipboard.');
     }
@@ -99,6 +101,8 @@ export default function LessonPlan() {
     a.download = `${(lessonPlan?.topic || topic || 'lesson-plan').replace(/\s+/g, '_')}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
+    setToast('Lesson plan downloaded.');
+    setTimeout(() => setToast(''), 2000);
   };
 
   const canSubmit = subject.trim() && topic.trim() && !loading;
@@ -269,7 +273,7 @@ export default function LessonPlan() {
       {!loading && !lessonPlan && !error && (
         <div className="mt-6 text-gray-600">Generate a lesson plan to see results here.</div>
       )}
-      {toast && <div className="fixed bottom-4 right-4 card section-card">{toast}</div>}
+      {toast && <div className="toast">{toast}</div>}
       </div>
     </div>
   );

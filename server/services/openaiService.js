@@ -64,6 +64,18 @@ const quizSchema = {
     properties: {
       topic: { type: 'string' },
       difficulty: { type: 'string' },
+      gradeLevel: { type: 'string' },
+      numQuestions: { type: 'integer' },
+      questionWeights: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['mcq', 'shortAnswer', 'essay'],
+        properties: {
+          mcq: { type: 'number' },
+          shortAnswer: { type: 'number' },
+          essay: { type: 'number' },
+        },
+      },
       mcq: {
         type: 'array',
         items: {
@@ -141,36 +153,97 @@ async function generateLessonPlan({ subject, topic }) {
   return normalizeLessonPlan(parsed, { subject, topic });
 }
 
-async function generateQuiz({ topic, difficulty }) {
+function getQuizDefaults({ gradeLevel, numQuestions, questionWeights }) {
+  const safeGrade = typeof gradeLevel === 'string' && gradeLevel.trim() ? gradeLevel.trim() : 'Grade 6-8';
+  const safeNum =
+    Number.isInteger(numQuestions) && numQuestions >= 5 && numQuestions <= 25 ? numQuestions : 10;
+  const safeWeights =
+    questionWeights && typeof questionWeights === 'object'
+      ? questionWeights
+      : { mcq: 0.6, shortAnswer: 0.3, essay: 0.1 };
+  return { gradeLevel: safeGrade, numQuestions: safeNum, questionWeights: safeWeights };
+}
+
+function distributeCounts(total, weights) {
+  const entries = [
+    { key: 'mcq', weight: weights.mcq },
+    { key: 'shortAnswer', weight: weights.shortAnswer },
+    { key: 'essay', weight: weights.essay },
+  ];
+  const raw = entries.map((entry) => total * entry.weight);
+  const counts = {};
+  entries.forEach((entry, idx) => {
+    counts[entry.key] = Math.max(1, Math.floor(raw[idx]));
+  });
+
+  let sum = entries.reduce((acc, entry) => acc + counts[entry.key], 0);
+  let remainder = total - sum;
+
+  if (remainder > 0) {
+    const order = entries
+      .map((entry, idx) => ({
+        key: entry.key,
+        frac: raw[idx] - Math.floor(raw[idx]),
+      }))
+      .sort((a, b) => b.frac - a.frac);
+    let i = 0;
+    while (remainder > 0) {
+      const target = order[i % order.length].key;
+      counts[target] += 1;
+      remainder -= 1;
+      i += 1;
+    }
+  } else if (remainder < 0) {
+    const order = entries
+      .map((entry, idx) => ({
+        key: entry.key,
+        frac: raw[idx] - Math.floor(raw[idx]),
+      }))
+      .sort((a, b) => a.frac - b.frac);
+    let i = 0;
+    while (remainder < 0) {
+      const target = order[i % order.length].key;
+      if (counts[target] > 1) {
+        counts[target] -= 1;
+        remainder += 1;
+      }
+      i += 1;
+      if (i > 100) break;
+    }
+  }
+
+  return counts;
+}
+
+async function generateQuiz({ topic, difficulty, gradeLevel, numQuestions, questionWeights }) {
+  const defaults = getQuizDefaults({ gradeLevel, numQuestions, questionWeights });
   if (shouldUseTemplateMode()) {
+    const counts = distributeCounts(defaults.numQuestions, defaults.questionWeights);
     return {
       topic,
       difficulty,
-      mcq: [
-        {
-          question: `Which statement best describes ${topic}?`,
-          options: [
-            `A core concept that explains ${topic}`,
-            `An unrelated idea to ${topic}`,
-            `A definition that contradicts ${topic}`,
-            `A random fact with no connection to ${topic}`,
-          ],
-          answerIndex: 0,
-          explanation: `Option A matches the central definition of ${topic}.`,
-        },
-      ],
-      shortAnswer: [
-        {
-          question: `Explain ${topic} in your own words.`,
-          sampleAnswer: `${topic} is a concept that ...`,
-        },
-      ],
-      essay: [
-        {
-          question: `How does ${topic} connect to the broader theme of this unit?`,
-          guidance: `Discuss main idea, example, and significance.`,
-        },
-      ],
+      gradeLevel: defaults.gradeLevel,
+      numQuestions: defaults.numQuestions,
+      questionWeights: defaults.questionWeights,
+      mcq: Array.from({ length: counts.mcq }, (_, index) => ({
+        question: `Which statement best describes ${topic}?`,
+        options: [
+          `A core concept that explains ${topic}`,
+          `An unrelated idea to ${topic}`,
+          `A definition that contradicts ${topic}`,
+          `A random fact with no connection to ${topic}`,
+        ],
+        answerIndex: 0,
+        explanation: `Option A matches the central definition of ${topic}.`,
+      })),
+      shortAnswer: Array.from({ length: counts.shortAnswer }, (_, index) => ({
+        question: `Explain ${topic} in your own words.`,
+        sampleAnswer: `${topic} is a concept that ...`,
+      })),
+      essay: Array.from({ length: counts.essay }, (_, index) => ({
+        question: `How does ${topic} connect to the broader theme of this unit?`,
+        guidance: `Discuss main idea, example, and significance.`,
+      })),
     };
   }
   const groq = initClient();
@@ -179,11 +252,11 @@ async function generateQuiz({ topic, difficulty }) {
     {
       role: 'system',
       content:
-        'You are a helpful teacher assistant. Return concise, classroom-ready content in valid JSON only. Schema: {topic, difficulty, mcq[{question, options[], answerIndex, explanation}], shortAnswer[{question, sampleAnswer}], essay[{question, guidance}]}.',
+        'You are a helpful teacher assistant. Return concise, classroom-ready content in valid JSON only. Schema: {topic, difficulty, gradeLevel, numQuestions, questionWeights{mcq, shortAnswer, essay}, mcq[{question, options[], answerIndex, explanation}], shortAnswer[{question, sampleAnswer}], essay[{question, guidance}]}.',
     },
     {
       role: 'user',
-      content: `Generate a quiz on "${topic}" with ${difficulty} difficulty. Include multiple-choice, short-answer, and essay questions.`,
+      content: `Generate a quiz on "${topic}" with ${difficulty} difficulty for ${defaults.gradeLevel}. Provide about ${defaults.numQuestions} questions total with weights: MCQ ${defaults.questionWeights.mcq}, short answer ${defaults.questionWeights.shortAnswer}, essay ${defaults.questionWeights.essay}.`,
     },
   ];
 
@@ -191,7 +264,7 @@ async function generateQuiz({ topic, difficulty }) {
 
   const content = resp?.choices?.[0]?.message?.content || '';
   const parsed = parseJsonResponse(content, quizSchema.name);
-  return normalizeQuiz(parsed, { topic, difficulty });
+  return normalizeQuiz(parsed, { topic, difficulty, ...defaults });
 }
 
 module.exports = {
@@ -280,6 +353,9 @@ function normalizeQuiz(quiz, fallback) {
   return {
     topic: normalizeString(safe.topic, fallback.topic),
     difficulty: normalizeString(safe.difficulty, fallback.difficulty),
+    gradeLevel: normalizeString(safe.gradeLevel, fallback.gradeLevel),
+    numQuestions: Number.isInteger(safe.numQuestions) ? safe.numQuestions : fallback.numQuestions,
+    questionWeights: safe.questionWeights || fallback.questionWeights,
     mcq: normalizedMcq,
     shortAnswer: normalizedShort,
     essay: normalizedEssay,

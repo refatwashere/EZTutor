@@ -22,6 +22,7 @@ The goal is to keep the app **lean, fast, and immediately useful**, while laying
 
 - **Quiz Generator**  
   - Input: Topic + Difficulty level  
+  - Input: Topic + Difficulty + Grade level + Question mix  
   - Output: MCQs, Short Answer, Essay Questions  
   - Export as PDF/Word or share online  
 
@@ -40,7 +41,7 @@ The goal is to keep the app **lean, fast, and immediately useful**, while laying
 | AI Services   | Groq API (free tier)                 |
 | Database      | MySQL (users + recents)              |
 | File Storage  | Cloudinary / Firebase Storage        |
-| Auth (future) | Firebase Auth / Auth0                |
+| Auth          | Local JWT (email + password)         |
 
 ---
 
@@ -50,9 +51,9 @@ EZTutor/
 │
 ├── docs/
 │   ├── architecture.md
-│   └── api-schema.md
 │   ├── DEPLOYMENT.md
 │   └── SECURITY.md
+│   └── api-schema.md
 │
 ├── client/              # Frontend (React)
 │   ├── public/
@@ -87,6 +88,17 @@ EZTutor/
 
 ---
 
+## 🧭 Architecture Snapshot
+```mermaid
+flowchart LR
+  UI[React Client] -->|Auth + Recents| API[Express API]
+  UI -->|Lesson/Quiz Requests| API
+  API -->|Groq SDK| GQ[Groq API]
+  API -->|Users + Recents| DB[(MySQL)]
+```
+
+---
+
 ## ⚙️ Installation & Setup
 
 ### 1. Clone the Repository
@@ -114,6 +126,7 @@ DB_PASSWORD=your_db_password
 DB_NAME=your_db_name
 DB_PORT=3306
 PORT=5000
+EZTUTOR_MODE=
 ```
 Run the backend (from repo root you can also run `npm run start-server`):
 ```bash
@@ -133,12 +146,12 @@ npm start
 - `POST /api/generate-lesson` → Generates lesson plan  
 - `POST /api/generate-quiz` → Generates quiz  
 - `POST /api/upload-resource` → Uploads resource (future)  
- - `POST /api/auth/signup` → Create account  
- - `POST /api/auth/login` → Login  
- - `GET /api/auth/me` → Get current user  
- - `GET /api/recents` → List recents  
- - `POST /api/recents` → Add recent  
- - `DELETE /api/recents` → Clear recents  
+- `POST /api/auth/signup` → Create account  
+- `POST /api/auth/login` → Login  
+- `GET /api/auth/me` → Get current user  
+- `GET /api/recents` → List recents  
+- `POST /api/recents` → Add recent  
+- `DELETE /api/recents` → Clear recents  
 
 ---
 
@@ -151,7 +164,7 @@ npm start
 
 ## 📦 Response Shape (Overview)
 - Lesson plan response contains structured fields like `objectives`, `keyPoints`, and `activities`.  
-- Quiz response contains `mcq`, `shortAnswer`, and `essay` arrays with answers.  
+- Quiz response contains `mcq`, `shortAnswer`, and `essay` arrays with answers, plus `gradeLevel`, `numQuestions`, and `questionWeights`.  
 
 ---
 
@@ -190,6 +203,15 @@ npm start
 
 ---
 
+## 🧯 Troubleshooting
+- **400 model decommissioned**: update `GROQ_MODEL` to a supported Groq model (see Groq deprecations).  
+- **401/403 invalid API key**: verify `GROQ_API_KEY` on the server and redeploy.  
+- **429 quota exceeded**: switch to template mode (`EZTUTOR_MODE=template`) or reduce requests.  
+- **MySQL connection errors**: confirm `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and inbound access.  
+- **Frontend can’t reach API**: set `REACT_APP_API_BASE` to your deployed backend URL.  
+
+---
+
 ## 📛 Status Badge
 Use this snippet in your README or docs to show health status (replace the URL with your deployed host):
 ```md
@@ -208,6 +230,13 @@ Use this snippet in your README or docs to show health status (replace the URL w
 - UI now includes a sticky nav, hero section, and polished form panels.  
 - A shared layout component provides consistent navigation across pages.  
 - Dashboard includes “Recent outputs” and quick-start suggestions.  
+
+---
+
+## 🔐 Authentication
+- Sign up and login with email + password (JWT).  
+- Tokens are stored in `localStorage` and sent via `Authorization: Bearer <token>`.  
+- Recents are scoped per user in MySQL, and the dashboard can clear them with one click.  
 
 ---
 

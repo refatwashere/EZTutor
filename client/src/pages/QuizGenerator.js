@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function QuizGenerator() {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('basic');
+  const [gradeLevel, setGradeLevel] = useState('Grade 7');
+  const [numQuestions, setNumQuestions] = useState(10);
+  const [weightPreset, setWeightPreset] = useState('balanced');
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+  const [prefsNotice, setPrefsNotice] = useState('');
   const [recentTopics] = useState([
     { topic: 'Renaissance', difficulty: 'intermediate' },
     { topic: 'Electric Circuits', difficulty: 'basic' },
     { topic: 'Argumentative Writing', difficulty: 'advanced' },
   ]);
+
+  const weightPresets = {
+    balanced: { mcq: 0.6, shortAnswer: 0.3, essay: 0.1 },
+    mcqHeavy: { mcq: 0.75, shortAnswer: 0.2, essay: 0.05 },
+    writingHeavy: { mcq: 0.4, shortAnswer: 0.4, essay: 0.2 },
+  };
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('eztutor_quiz_prefs');
+      if (!stored) return;
+      const prefs = JSON.parse(stored);
+      if (prefs.gradeLevel) setGradeLevel(prefs.gradeLevel);
+      if (prefs.numQuestions) setNumQuestions(prefs.numQuestions);
+      if (prefs.weightPreset) setWeightPreset(prefs.weightPreset);
+      setPrefsNotice('Quiz settings loaded from Dashboard.');
+      setTimeout(() => setPrefsNotice(''), 2500);
+    } catch (err) {
+      // ignore malformed prefs
+    }
+  }, []);
 
   const generateQuiz = async () => {
     setError('');
@@ -21,13 +46,23 @@ export default function QuizGenerator() {
     try {
       const res = await axios.post(
         '/api/generate-quiz',
-        { topic, difficulty },
+        {
+          topic,
+          difficulty,
+          gradeLevel,
+          numQuestions: Number(numQuestions),
+          questionWeights: weightPresets[weightPreset] || weightPresets.balanced,
+        },
         {
           baseURL: process.env.REACT_APP_API_BASE || '',
         }
       );
       setQuiz(res.data.quiz);
-      await saveRecent('quiz', `Quiz: ${res.data.quiz?.topic || topic}`, `Difficulty: ${difficulty}`);
+      await saveRecent(
+        'quiz',
+        `Quiz: ${res.data.quiz?.topic || topic}`,
+        `${gradeLevel} • ${difficulty}`
+      );
       setToast('Quiz saved to recents.');
       setTimeout(() => setToast(''), 2000);
     } catch (err) {
@@ -46,6 +81,8 @@ export default function QuizGenerator() {
     const lines = [];
     lines.push(`Quiz: ${quizData.topic || topic}`);
     lines.push(`Difficulty: ${quizData.difficulty || difficulty}`);
+    lines.push(`Grade Level: ${quizData.gradeLevel || gradeLevel}`);
+    lines.push(`Questions: ${quizData.numQuestions || numQuestions}`);
     lines.push('');
     if (quizData.mcq?.length) {
       lines.push('Multiple Choice:');
@@ -83,6 +120,8 @@ export default function QuizGenerator() {
     if (!quiz) return;
     try {
       await navigator.clipboard.writeText(formatQuizText(quiz));
+      setToast('Quiz copied.');
+      setTimeout(() => setToast(''), 2000);
     } catch (err) {
       setError('Failed to copy to clipboard.');
     }
@@ -98,9 +137,11 @@ export default function QuizGenerator() {
     a.download = `${(quiz?.topic || topic || 'quiz').replace(/\s+/g, '_')}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
+    setToast('Quiz downloaded.');
+    setTimeout(() => setToast(''), 2000);
   };
 
-  const canSubmit = topic.trim() && difficulty && !loading;
+  const canSubmit = topic.trim() && difficulty && gradeLevel.trim() && !loading;
 
   const saveRecent = async (type, title, subtitle) => {
     const token = localStorage.getItem('eztutor_token');
@@ -130,6 +171,7 @@ export default function QuizGenerator() {
       <p className="text-gray-600">
         Generate a balanced quiz with multiple choice, short answer, and essay questions.
       </p>
+      {prefsNotice && <div className="pill">{prefsNotice}</div>}
       <div className="flex flex-wrap gap-2">
         {recentTopics.map((item) => (
           <button
@@ -150,6 +192,20 @@ export default function QuizGenerator() {
         value={topic}
         onChange={(e) => setTopic(e.target.value)}
       />
+      <input
+        className="input w-full"
+        placeholder="Grade level (e.g., Grade 7)"
+        value={gradeLevel}
+        onChange={(e) => setGradeLevel(e.target.value)}
+      />
+      <input
+        className="input w-full"
+        type="number"
+        min="5"
+        max="25"
+        value={numQuestions}
+        onChange={(e) => setNumQuestions(e.target.value)}
+      />
       <select 
         className="input w-full"
         value={difficulty}
@@ -158,6 +214,15 @@ export default function QuizGenerator() {
         <option value="basic">Basic</option>
         <option value="intermediate">Intermediate</option>
         <option value="advanced">Advanced</option>
+      </select>
+      <select
+        className="input w-full"
+        value={weightPreset}
+        onChange={(e) => setWeightPreset(e.target.value)}
+      >
+        <option value="balanced">Balanced mix</option>
+        <option value="mcqHeavy">More multiple choice</option>
+        <option value="writingHeavy">More writing</option>
       </select>
       <div className="flex flex-wrap gap-2">
         <button 
@@ -196,6 +261,8 @@ export default function QuizGenerator() {
           <div>
             <div className="text-xl font-semibold">{quiz.topic || topic}</div>
             <div className="text-gray-700">Difficulty: {quiz.difficulty || difficulty}</div>
+            <div className="text-gray-700">Grade Level: {quiz.gradeLevel || gradeLevel}</div>
+            <div className="text-gray-700">Questions: {quiz.numQuestions || numQuestions}</div>
           </div>
 
           {quiz.mcq?.length > 0 && (
@@ -254,7 +321,7 @@ export default function QuizGenerator() {
       {!loading && !quiz && !error && (
         <div className="mt-6 text-gray-600">Generate a quiz to see results here.</div>
       )}
-      {toast && <div className="fixed bottom-4 right-4 card section-card">{toast}</div>}
+      {toast && <div className="toast">{toast}</div>}
       </div>
     </div>
   );

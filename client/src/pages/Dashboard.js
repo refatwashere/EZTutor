@@ -6,6 +6,25 @@ export default function Dashboard() {
   const [recent, setRecent] = useState([]);
   const [toast, setToast] = useState('');
   const { user } = useOutletContext() || {};
+  const [quizPrefs, setQuizPrefs] = useState({
+    gradeLevel: 'Grade 7',
+    numQuestions: 10,
+    weightPreset: 'balanced',
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('eztutor_quiz_prefs');
+      if (!stored) return;
+      const prefs = JSON.parse(stored);
+      setQuizPrefs((prev) => ({
+        ...prev,
+        ...prefs,
+      }));
+    } catch (err) {
+      // ignore malformed prefs
+    }
+  }, []);
 
   useEffect(() => {
     const loadRecents = async () => {
@@ -96,7 +115,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="card section-card space-y-3">
             <div className="text-sm text-gray-500">How it works</div>
             <ol className="list-decimal pl-6 text-gray-700 space-y-2">
@@ -126,6 +145,65 @@ export default function Dashboard() {
               Every output is sectioned and ready to use. Save time without sacrificing
               instructional quality.
             </div>
+          </div>
+          <div className="card section-card space-y-3">
+            <div className="text-sm text-gray-500">Quiz settings</div>
+            <input
+              className="input w-full"
+              placeholder="Grade level"
+              value={quizPrefs.gradeLevel}
+              onChange={(e) =>
+                setQuizPrefs((prev) => ({ ...prev, gradeLevel: e.target.value }))
+              }
+            />
+            <input
+              className="input w-full"
+              type="number"
+              min="5"
+              max="25"
+              value={quizPrefs.numQuestions}
+              onChange={(e) =>
+                setQuizPrefs((prev) => ({ ...prev, numQuestions: e.target.value }))
+              }
+            />
+            <select
+              className="input w-full"
+              value={quizPrefs.weightPreset}
+              onChange={(e) =>
+                setQuizPrefs((prev) => ({ ...prev, weightPreset: e.target.value }))
+              }
+            >
+              <option value="balanced">Balanced mix</option>
+              <option value="mcqHeavy">More multiple choice</option>
+              <option value="writingHeavy">More writing</option>
+            </select>
+            <button
+              className="btn btn-outline"
+              onClick={() => {
+                localStorage.setItem('eztutor_quiz_prefs', JSON.stringify(quizPrefs));
+                setToast('Quiz settings saved.');
+                setTimeout(() => setToast(''), 2000);
+                navigate('/quiz');
+              }}
+            >
+              Use in Quiz
+            </button>
+            <button
+              className="btn btn-outline"
+              onClick={() => {
+                const defaults = {
+                  gradeLevel: 'Grade 7',
+                  numQuestions: 10,
+                  weightPreset: 'balanced',
+                };
+                setQuizPrefs(defaults);
+                localStorage.removeItem('eztutor_quiz_prefs');
+                setToast('Quiz settings reset.');
+                setTimeout(() => setToast(''), 2000);
+              }}
+            >
+              Reset
+            </button>
           </div>
         </div>
 
@@ -175,7 +253,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-      {toast && <div className="fixed bottom-4 right-4 card section-card">{toast}</div>}
+      {toast && <div className="toast">{toast}</div>}
     </main>
   );
 }

@@ -33,6 +33,7 @@ EZTUTOR_MODE=
 3. Serve `client/build` with your static host.
 4. Set `REACT_APP_API_BASE` to your API URL (for example, Render).
 5. If using Render Postgres, set `DATABASE_URL` and keep `DB_SSL=true`.
+6. (Optional) Wire `/api/support` to an email provider if you want real inbox delivery.
 
 ## Post-Deploy Verification
 1. Generate a lesson plan.

@@ -175,3 +175,25 @@ returns structured JSON for predictable rendering in the UI.
   "ok": true
 }
 ```
+
+**Notes**
+Support requests are currently logged server-side and do not persist to the database.
+
+## POST `/api/support`
+
+**Request**
+```json
+{
+  "name": "Alex Teacher",
+  "email": "teacher@example.com",
+  "topic": "Bug report",
+  "message": "Quiz generator returns empty results."
+}
+```
+
+**Response**
+```json
+{
+  "ok": true
+}
+```

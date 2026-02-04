@@ -22,7 +22,7 @@ flowchart LR
   - Pages: Dashboard, LessonPlan, QuizGenerator, ResourceHub
   - Layout: shared navigation and theme system
 - **Server**: Express + Groq SDK
-  - Routes: `/api/generate-lesson`, `/api/generate-quiz`, `/api/auth/*`, `/api/recents`
+  - Routes: `/api/generate-lesson`, `/api/generate-quiz`, `/api/auth/*`, `/api/recents`, `/api/support`
   - Middleware: rate limiting, API key auth, JWT auth, error handler, compression
 - **Database**: Postgres (users + recents)
 

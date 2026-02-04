@@ -14,6 +14,7 @@ API requests are rate-limited (100 requests per 15 minutes per IP).
 ## Input Validation
 Server validates required fields, types, and max lengths for lesson and quiz input.
 Auth inputs enforce basic password length and email format checks.
+Support submissions validate required fields before processing.
 
 ## Password Storage
 Passwords are hashed using `bcryptjs` before being stored in Postgres.
@@ -27,3 +28,4 @@ Passwords are hashed using `bcryptjs` before being stored in Postgres.
 - Rotate Groq API keys regularly.
 - Store secrets in environment variables only.
 - Enable HTTPS in production.
+- Avoid collecting student PII unless necessary.

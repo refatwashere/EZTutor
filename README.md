@@ -154,6 +154,7 @@ npm start
 - `GET /api/recents` → List recents  
 - `POST /api/recents` → Add recent  
 - `DELETE /api/recents` → Clear recents  
+- `POST /api/support` → Submit support request  
 
 ---
 
@@ -196,6 +197,15 @@ npm start
 - `docs/api-schema.md` → response schema overview  
 - `docs/DEPLOYMENT.md` → production deployment guide  
 - `docs/SECURITY.md` → security and API key notes  
+
+---
+
+## 🧾 Legal & Support Pages
+- `/privacy` → Privacy Policy  
+- `/terms` → Terms of Service  
+- `/cookies` → Cookie Policy  
+- `/support` → Support  
+- `/contact` → Contact  
 
 ---
 

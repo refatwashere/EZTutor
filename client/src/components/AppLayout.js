@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
 import AuthModal from './AuthModal';
 
 export default function AppLayout() {
@@ -90,6 +90,28 @@ export default function AppLayout() {
         />
       )}
       <Outlet context={{ user }} />
+      <footer className="section">
+        <div className="container-wide flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+          <div>© {new Date().getFullYear()} EZTutor. All rights reserved.</div>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/privacy" className="btn btn-outline">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="btn btn-outline">
+              Terms
+            </Link>
+            <Link to="/cookies" className="btn btn-outline">
+              Cookie Policy
+            </Link>
+            <Link to="/support" className="btn btn-outline">
+              Support
+            </Link>
+            <Link to="/contact" className="btn btn-outline">
+              Contact
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

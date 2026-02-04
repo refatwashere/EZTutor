@@ -32,6 +32,17 @@ test('POST /api/generate-quiz rejects invalid difficulty', async () => {
   assert.equal(res.body.error, 'difficulty must be one of: basic, intermediate, advanced');
 });
 
+test('POST /api/support validates input', async () => {
+  const bad = await request(app).post('/api/support').send({});
+  assert.equal(bad.statusCode, 400);
+
+  const ok = await request(app)
+    .post('/api/support')
+    .send({ name: 'Alex', email: 'teacher@example.com', topic: 'Bug report', message: 'Help' });
+  assert.equal(ok.statusCode, 200);
+  assert.equal(ok.body.ok, true);
+});
+
 test('GET /health returns uptime and timestamp', async () => {
   const res = await request(app).get('/health');
   assert.equal(res.statusCode, 200);

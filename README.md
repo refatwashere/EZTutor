@@ -39,7 +39,7 @@ The goal is to keep the app **lean, fast, and immediately useful**, while laying
 | Frontend      | React, TailwindCSS, Axios            |
 | Backend       | Node.js, Express                     |
 | AI Services   | Groq API (free tier)                 |
-| Database      | MySQL (users + recents)              |
+| Database      | Postgres (Render, users + recents)   |
 | File Storage  | Cloudinary / Firebase Storage        |
 | Auth          | Local JWT (email + password)         |
 
@@ -94,7 +94,7 @@ flowchart LR
   UI[React Client] -->|Auth + Recents| API[Express API]
   UI -->|Lesson/Quiz Requests| API
   API -->|Groq SDK| GQ[Groq API]
-  API -->|Users + Recents| DB[(MySQL)]
+  API -->|Users + Recents| DB[(Postgres)]
 ```
 
 ---
@@ -120,11 +120,13 @@ GROQ_TIMEOUT_MS=20000
 GROQ_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients
 JWT_SECRET=change_me
-DB_HOST=sql112.infinityfree.com
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_db_name
-DB_PORT=3306
+DATABASE_URL=
+DB_SSL=true
+DB_HOST=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+DB_PORT=5432
 PORT=5000
 EZTUTOR_MODE=
 ```
@@ -207,7 +209,7 @@ npm start
 - **400 model decommissioned**: update `GROQ_MODEL` to a supported Groq model (see Groq deprecations).  
 - **401/403 invalid API key**: verify `GROQ_API_KEY` on the server and redeploy.  
 - **429 quota exceeded**: switch to template mode (`EZTUTOR_MODE=template`) or reduce requests.  
-- **MySQL connection errors**: confirm `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and inbound access.  
+- **Postgres connection errors**: confirm `DATABASE_URL` (preferred) or `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and inbound access.  
 - **Frontend can’t reach API**: set `REACT_APP_API_BASE` to your deployed backend URL.  
 
 ---
@@ -236,7 +238,7 @@ Use this snippet in your README or docs to show health status (replace the URL w
 ## 🔐 Authentication
 - Sign up and login with email + password (JWT).  
 - Tokens are stored in `localStorage` and sent via `Authorization: Bearer <token>`.  
-- Recents are scoped per user in MySQL, and the dashboard can clear them with one click.  
+- Recents are scoped per user in Postgres, and the dashboard can clear them with one click.  
 
 ---
 

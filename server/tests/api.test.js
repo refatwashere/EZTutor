@@ -41,8 +41,8 @@ test('GET /health returns uptime and timestamp', async () => {
 });
 
 test('Auth signup/login and recents flow', async (t) => {
-  if (!process.env.DB_HOST) {
-    t.skip('DB_HOST not set for tests');
+  if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+    t.skip('DATABASE_URL/DB_HOST not set for tests');
     return;
   }
   const signup = await request(app)

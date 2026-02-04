@@ -10,11 +10,13 @@ GROQ_TIMEOUT_MS=20000
 GROQ_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients
 JWT_SECRET=change_me
-DB_HOST=sql112.infinityfree.com
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_db_name
-DB_PORT=3306
+DATABASE_URL=
+DB_SSL=true
+DB_HOST=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+DB_PORT=5432
 PORT=5000
 EZTUTOR_MODE=
 ```
@@ -30,6 +32,7 @@ EZTUTOR_MODE=
 2. Build with `npm run build`.
 3. Serve `client/build` with your static host.
 4. Set `REACT_APP_API_BASE` to your API URL (for example, Render).
+5. If using Render Postgres, set `DATABASE_URL` and keep `DB_SSL=true`.
 
 ## Post-Deploy Verification
 1. Generate a lesson plan.

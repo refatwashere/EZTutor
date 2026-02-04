@@ -1,47 +1,57 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT || 3306),
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+function buildPoolConfig() {
+  const connectionString = process.env.DATABASE_URL;
+  const useSsl = process.env.DB_SSL === 'true' || Boolean(connectionString);
+
+  if (connectionString) {
+    return {
+      connectionString,
+      ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+    };
+  }
+
+  return {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: Number(process.env.DB_PORT || 5432),
+    ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+  };
+}
+
+const pool = new Pool(buildPoolConfig());
 
 async function init() {
-  await pool.execute(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      password_hash VARCHAR(255) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  await pool.execute(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS recents (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       type VARCHAR(16) NOT NULL,
-      title VARCHAR(255) NOT NULL,
-      subtitle VARCHAR(255) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_recents_user_id (user_id),
-      CONSTRAINT fk_recents_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      title TEXT NOT NULL,
+      subtitle TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     )
   `);
 }
 
 async function run(sql, params = []) {
-  await pool.execute(sql, params);
+  return pool.query(sql, params);
 }
 
 async function all(sql, params = []) {
-  const [rows] = await pool.execute(sql, params);
-  return rows;
+  const result = await pool.query(sql, params);
+  return result.rows;
 }
 
 async function get(sql, params = []) {

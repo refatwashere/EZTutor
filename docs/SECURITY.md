@@ -16,11 +16,12 @@ Server validates required fields, types, and max lengths for lesson and quiz inp
 Auth inputs enforce basic password length and email format checks.
 
 ## Password Storage
-Passwords are hashed using `bcryptjs` before being stored in MySQL.
+Passwords are hashed using `bcryptjs` before being stored in Postgres.
 
 ## Database Security
-- Use a least-privilege MySQL user for the app.
+- Use a least-privilege Postgres user for the app.
 - Keep DB credentials out of source control and rotate regularly.
+- Require TLS (`DB_SSL=true`) for managed databases in production.
 
 ## Recommended Practices
 - Rotate Groq API keys regularly.

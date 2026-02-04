@@ -38,7 +38,7 @@ The goal is to keep the app **lean, fast, and immediately useful**, while laying
 | Frontend      | React, TailwindCSS, Axios            |
 | Backend       | Node.js, Express                     |
 | AI Services   | Groq API (free tier)                 |
-| Database      | MongoDB (for resource metadata)      |
+| Database      | SQLite (users + recents)             |
 | File Storage  | Cloudinary / Firebase Storage        |
 | Auth (future) | Firebase Auth / Auth0                |
 
@@ -107,6 +107,8 @@ GROQ_MODEL=llama-3.1-8b-instant
 GROQ_TIMEOUT_MS=20000
 GROQ_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients
+JWT_SECRET=change_me
+SQLITE_PATH=server/data/app.db
 PORT=5000
 ```
 Run the backend (from repo root you can also run `npm run start-server`):
@@ -127,6 +129,12 @@ npm start
 - `POST /api/generate-lesson` → Generates lesson plan  
 - `POST /api/generate-quiz` → Generates quiz  
 - `POST /api/upload-resource` → Uploads resource (future)  
+ - `POST /api/auth/signup` → Create account  
+ - `POST /api/auth/login` → Login  
+ - `GET /api/auth/me` → Get current user  
+ - `GET /api/recents` → List recents  
+ - `POST /api/recents` → Add recent  
+ - `DELETE /api/recents` → Clear recents  
 
 ---
 

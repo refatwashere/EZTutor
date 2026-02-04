@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [recent, setRecent] = useState([]);
+  const [toast, setToast] = useState('');
+  const { user } = useOutletContext() || {};
 
   useEffect(() => {
-    const stored = localStorage.getItem('eztutor_recent_outputs');
-    if (stored) {
+    const loadRecents = async () => {
+      if (!user) return setRecent([]);
+      const token = localStorage.getItem('eztutor_token');
+      if (!token) return setRecent([]);
       try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecent(parsed);
-        }
+        const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/recents`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setRecent(data.recents || []);
       } catch (err) {
         setRecent([]);
       }
-    }
-  }, []);
+    };
+    loadRecents();
+  }, [user]);
 
   return (
     <main className="page">
@@ -100,6 +106,21 @@ export default function Dashboard() {
             </ol>
           </div>
           <div className="card section-card space-y-3">
+            <div className="text-sm text-gray-500">Get started</div>
+            <div className="text-gray-700">Try one of these quick starts:</div>
+            <div className="flex flex-wrap gap-2">
+              <button className="pill" onClick={() => navigate('/lesson')}>
+                Math • Fractions
+              </button>
+              <button className="pill" onClick={() => navigate('/lesson')}>
+                Science • Photosynthesis
+              </button>
+              <button className="pill" onClick={() => navigate('/quiz')}>
+                History • Renaissance
+              </button>
+            </div>
+          </div>
+          <div className="card section-card space-y-3">
             <div className="text-sm text-gray-500">Designed for clarity</div>
             <div className="text-gray-700">
               Every output is sectioned and ready to use. Save time without sacrificing
@@ -110,7 +131,9 @@ export default function Dashboard() {
 
         <div className="card section-card space-y-3">
           <div className="text-sm text-gray-500">Recent outputs</div>
-          {recent.length === 0 ? (
+          {!user ? (
+            <div className="text-gray-600">Sign in to save and view your recent outputs.</div>
+          ) : recent.length === 0 ? (
             <div className="text-gray-600">
               No recent items yet. Generate a lesson or quiz to see it here.
             </div>
@@ -132,8 +155,27 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
+          {user && recent.length > 0 && (
+            <button
+              className="btn btn-outline"
+              onClick={async () => {
+                const token = localStorage.getItem('eztutor_token');
+                if (!token) return;
+                await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/recents`, {
+                  method: 'DELETE',
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                setRecent([]);
+                setToast('Recents cleared.');
+                setTimeout(() => setToast(''), 2000);
+              }}
+            >
+              Clear Recents
+            </button>
+          )}
         </div>
       </div>
+      {toast && <div className="fixed bottom-4 right-4 card section-card">{toast}</div>}
     </main>
   );
 }

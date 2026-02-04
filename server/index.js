@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const compression = require('compression');
+require('./db');
 
 dotenv.config();
 

@@ -26,6 +26,8 @@ build/
 out/
 **/dist/
 **/build/
+server/data/*.db
+server/data/*.sqlite
 
 # Logs
 logs/

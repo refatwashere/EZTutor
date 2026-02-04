@@ -9,12 +9,15 @@
     "test": "node --test"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "compression": "^1.8.0",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^7.5.1",
-    "groq-sdk": "^0.7.0"
+    "groq-sdk": "^0.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "sql.js": "^1.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",

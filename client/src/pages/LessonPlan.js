@@ -7,6 +7,7 @@ export default function LessonPlan() {
   const [lessonPlan, setLessonPlan] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState('');
   const [recentInputs] = useState([
     { subject: 'Math', topic: 'Fractions' },
     { subject: 'Science', topic: 'Photosynthesis' },
@@ -26,14 +27,9 @@ export default function LessonPlan() {
         }
       );
       setLessonPlan(res.data.lessonPlan);
-      const summary = {
-        id: `lesson-${Date.now()}`,
-        type: 'lesson',
-        title: res.data.lessonPlan?.title || 'Lesson Plan',
-        subtitle: `${subject} • ${topic}`,
-      };
-      const existing = JSON.parse(localStorage.getItem('eztutor_recent_outputs') || '[]');
-      localStorage.setItem('eztutor_recent_outputs', JSON.stringify([summary, ...existing].slice(0, 5)));
+      await saveRecent('lesson', res.data.lessonPlan?.title || 'Lesson Plan', `${subject} • ${topic}`);
+      setToast('Lesson plan saved to recents.');
+      setTimeout(() => setToast(''), 2000);
     } catch (err) {
       const message =
         err?.response?.data?.error ||
@@ -106,6 +102,19 @@ export default function LessonPlan() {
   };
 
   const canSubmit = subject.trim() && topic.trim() && !loading;
+
+  const saveRecent = async (type, title, subtitle) => {
+    const token = localStorage.getItem('eztutor_token');
+    if (!token) return;
+    await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/recents`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ type, title, subtitle }),
+    });
+  };
 
   return (
     <div className="page">
@@ -257,6 +266,10 @@ export default function LessonPlan() {
           )}
         </div>
       )}
+      {!loading && !lessonPlan && !error && (
+        <div className="mt-6 text-gray-600">Generate a lesson plan to see results here.</div>
+      )}
+      {toast && <div className="fixed bottom-4 right-4 card section-card">{toast}</div>}
       </div>
     </div>
   );

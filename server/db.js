@@ -1,67 +1,46 @@
-const fs = require('fs');
-const path = require('path');
-const initSqlJs = require('sql.js');
+const mysql = require('mysql2/promise');
 
-const dbPath = process.env.SQLITE_PATH || path.join(__dirname, 'data', 'app.db');
-const isMemory = dbPath === ':memory:';
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT || 3306),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
-let dbPromise;
+async function init() {
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-async function getDb() {
-  if (!dbPromise) {
-    dbPromise = initSqlJs().then((SQL) => {
-      let db;
-      if (!isMemory && fs.existsSync(dbPath)) {
-        const fileBuffer = fs.readFileSync(dbPath);
-        db = new SQL.Database(fileBuffer);
-      } else {
-        db = new SQL.Database();
-      }
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY,
-          email TEXT UNIQUE NOT NULL,
-          password_hash TEXT NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-
-        CREATE TABLE IF NOT EXISTS recents (
-          id INTEGER PRIMARY KEY,
-          user_id INTEGER NOT NULL,
-          type TEXT NOT NULL,
-          title TEXT NOT NULL,
-          subtitle TEXT NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-      persist(db);
-      return db;
-    });
-  }
-  return dbPromise;
-}
-
-function persist(db) {
-  if (isMemory) return;
-  const data = db.export();
-  fs.writeFileSync(dbPath, Buffer.from(data));
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS recents (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      type VARCHAR(16) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      subtitle VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_recents_user_id (user_id),
+      CONSTRAINT fk_recents_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
 }
 
 async function run(sql, params = []) {
-  const db = await getDb();
-  db.run(sql, params);
-  persist(db);
+  await pool.execute(sql, params);
 }
 
 async function all(sql, params = []) {
-  const db = await getDb();
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  const rows = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
-  }
-  stmt.free();
+  const [rows] = await pool.execute(sql, params);
   return rows;
 }
 
@@ -71,6 +50,7 @@ async function get(sql, params = []) {
 }
 
 module.exports = {
+  init,
   run,
   all,
   get,

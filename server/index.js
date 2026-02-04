@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const compression = require('compression');
-require('./db');
+const db = require('./db');
 
 dotenv.config();
 
@@ -96,6 +96,9 @@ app.get('/health/groq', async (req, res) => {
 app.use(errorHandler);
 
 if (require.main === module) {
+  db.init().catch((err) => {
+    console.error('Failed to initialize DB', err);
+  });
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

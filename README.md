@@ -38,7 +38,7 @@ The goal is to keep the app **lean, fast, and immediately useful**, while laying
 | Frontend      | React, TailwindCSS, Axios            |
 | Backend       | Node.js, Express                     |
 | AI Services   | Groq API (free tier)                 |
-| Database      | SQLite (users + recents)             |
+| Database      | MySQL (users + recents)              |
 | File Storage  | Cloudinary / Firebase Storage        |
 | Auth (future) | Firebase Auth / Auth0                |
 
@@ -108,7 +108,11 @@ GROQ_TIMEOUT_MS=20000
 GROQ_MAX_RETRIES=2
 EZTUTOR_API_KEY=optional_api_key_for_clients
 JWT_SECRET=change_me
-SQLITE_PATH=server/data/app.db
+DB_HOST=sql112.infinityfree.com
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+DB_PORT=3306
 PORT=5000
 ```
 Run the backend (from repo root you can also run `npm run start-server`):

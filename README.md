@@ -1,281 +1,203 @@
-
 ---
 
-# 📘 EZTutor (MVP)
+# 📘 EZTutor – AI-Powered Teacher Productivity Suite
+
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen)]()
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
+
+_Empower teachers with AI-driven lesson planning, quiz generation, and resource organization._
+
+</div>
+
+---
 
 ## 🚀 Overview
-This project is a **web application MVP** designed to help teachers save time and boost productivity.  
-The app provides three core features:
-1. **Smart Lesson Planner** – AI-generated lesson outlines.  
-2. **Quiz & Worksheet Generator** – AI-generated multiple-choice, short-answer, and essay questions.  
-3. **Resource Organizer (Basic)** – Upload and auto-tag teaching resources for quick search.  
 
-The goal is to keep the app **lean, fast, and immediately useful**, while laying the foundation for future expansion (grading, analytics, collaboration).
+EZTutor is a lightweight full-stack MVP built to help teachers save preparation time by generating structured lesson plans and quizzes and organizing teaching resources.
+
+### Core Features
+- 🎓 **Smart Lesson Planner** — AI-generated objectives, key points, activities and timing
+- 📝 **Quiz & Worksheet Generator** — MCQs, short answers, and essay prompts with answer keys
+- 📚 **Resource Organizer** — Upload, auto-tag, and search teaching materials
+
+### Philosophy
+Keep the product lean, fast, and immediately useful while providing a solid foundation for future features (grading, analytics, collaboration).
 
 ---
 
-## 🧑‍🏫 Features
-- **Lesson Planner**  
-  - Input: Subject + Topic  
-  - Output: Objectives, Key Points, Suggested Activities  
-  - Export as PDF/Word or share digitally  
+## ✨ Feature Highlights
 
-- **Quiz Generator**  
-  - Input: Topic + Difficulty level  
-  - Input: Topic + Difficulty + Grade level + Question mix  
-  - Output: MCQs, Short Answer, Essay Questions  
-  - Export as PDF/Word or share online  
+### 🎓 Lesson Planner
+| Feature | Details |
+|---------|---------|
+| **Input** | Subject & Topic |
+| **Output** | Objectives, key points, suggested activities, estimated duration |
+| **Export** | PDF, Word, or shareable link |
 
-- **Resource Organizer**  
-  - Upload notes/slides  
-  - Auto-tag by subject/topic  
-  - Search bar for instant retrieval  
+### 📝 Quiz Generator
+| Feature | Details |
+|---------|---------|
+| **Input** | Topic, difficulty, grade level, question mix |
+| **Output** | MCQs with distractors, short-answer, essay questions, answer keys |
+| **Customization** | Number of questions, mix, and difficulty |
+
+### 📚 Resource Organizer
+| Feature | Details |
+|---------|---------|
+| **Upload** | PDFs, images, docs |
+| **Auto-tagging** | Smart categorization by subject/topic |
+| **Search** | Full-text and tag-based search |
 
 ---
 
 ## 🛠️ Tech Stack
-| Layer         | Tools/Frameworks                     |
-|---------------|--------------------------------------|
-| Frontend      | React, TailwindCSS, Axios            |
-| Backend       | Node.js, Express                     |
-| AI Services   | Groq API (free tier)                 |
-| Database      | Postgres (Render, users + recents)   |
-| File Storage  | Cloudinary / Firebase Storage        |
-| Auth          | Local JWT (email + password)         |
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, TailwindCSS, Axios |
+| Backend | Node.js, Express 5 |
+| AI Engine | Groq SDK (llama family) |
+| Database | PostgreSQL |
+| Storage | Cloudinary / Firebase |
+| Auth | JWT (stateless) |
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure (high level)
+
 ```
 EZTutor/
-│
-├── docs/
-│   ├── architecture.md
-│   ├── DEPLOYMENT.md
-│   └── SECURITY.md
-│   └── api-schema.md
-│
-├── client/              # Frontend (React)
-│   ├── public/
-│   ├── .env.production
-│   ├── postcss.config.js
-│   └── src/
-│       ├── components/
-│       │   └── AppLayout.js
-│       ├── pages/
-│       │   ├── Dashboard.js
-│       │   ├── LessonPlan.js
-│       │   ├── QuizGenerator.js
-│       │   └── ResourceHub.js
-│       ├── App.js
-│       └── index.css
-│   └── tailwind.config.js
-│
-├── server/              # Backend (Express)
-│   ├── routes/
-│   ├── controllers/
-│   ├── services/
-│   ├── middleware/
-│   ├── tests/
-│   └── index.js
-│
-├── .env                 # Environment variables
-├── package.json
-├── CHANGELOG.md
-├── RELEASE_CHECKLIST.md
+├── client/      # React frontend
+├── server/      # Express backend
+├── docs/        # architecture, api-schema, deployment, security
+├── CODE_REVIEW.md
+├── REFACTORING_ROADMAP.md
 └── README.md
 ```
 
----
-
-## 🧭 Architecture Snapshot
-```mermaid
-flowchart LR
-  UI[React Client] -->|Auth + Recents| API[Express API]
-  UI -->|Lesson/Quiz Requests| API
-  API -->|Groq SDK| GQ[Groq API]
-  API -->|Users + Recents| DB[(Postgres)]
-```
+See `FOLDER_STRUCTURE_GUIDE.md` for a full breakdown.
 
 ---
 
-## ⚙️ Installation & Setup
+## 🚀 Quick Start
 
-### 1. Clone the Repository
+### Prerequisites
+- Node.js 18+ and npm
+- PostgreSQL 12+ (or hosted DB)
+- Groq API key (see https://console.groq.com)
+
+### Install and run locally
+
 ```bash
 git clone https://github.com/refatwashere/EZTutor.git
 cd EZTutor
-```
+npm install
 
-### 2. Backend Setup
-```bash
+# Start backend
 cd server
 npm install
-```
-Create a `.env` file (or copy `.env.example`):
-```
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.1-8b-instant
-GROQ_TIMEOUT_MS=20000
-GROQ_MAX_RETRIES=2
-EZTUTOR_API_KEY=optional_api_key_for_clients
-JWT_SECRET=change_me
-DATABASE_URL=
-DB_SSL=true
-DB_HOST=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
-DB_PORT=5432
-PORT=5000
-EZTUTOR_MODE=
-```
-Run the backend (from repo root you can also run `npm run start-server`):
-```bash
-node index.js
-```
+cp .env.example .env
+# edit .env, then:
+npm start
 
-### 3. Frontend Setup
-```bash
-cd client
+# Start frontend (in another terminal)
+cd ../client
 npm install
 npm start
 ```
 
+Frontend runs at `http://localhost:3000`, API at `http://localhost:5000`.
+
 ---
 
 ## 🔗 API Endpoints
-- `POST /api/generate-lesson` → Generates lesson plan  
-- `POST /api/generate-quiz` → Generates quiz  
-- `POST /api/upload-resource` → Uploads resource (future)  
-- `POST /api/auth/signup` → Create account  
-- `POST /api/auth/login` → Login  
-- `GET /api/auth/me` → Get current user  
-- `GET /api/recents` → List recents  
-- `POST /api/recents` → Add recent  
-- `DELETE /api/recents` → Clear recents  
-- `POST /api/support` → Submit support request  
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Create account |
+| POST | `/api/auth/login` | Login & receive JWT |
+| GET  | `/api/auth/me`    | Get current user (auth) |
+
+### Core
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/generate-lesson` | Generate lesson plan (subject, topic) |
+| POST | `/api/generate-quiz`   | Generate quiz (topic, difficulty, grade) |
+| POST | `/api/support`         | Submit support request |
+
+### User Data
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/api/recents` | List user's recents (auth) |
+| POST   | `/api/recents` | Add a recent item (auth) |
+| DELETE | `/api/recents` | Clear recents (auth) |
+
+Health endpoints: `GET /health`, `GET /health/groq`
+
+Full schema: `docs/api-schema.md`.
 
 ---
 
-## 🧰 Validation & Safety
-- Basic input validation is enforced on lesson and quiz endpoints.  
-- Requests to `/api` are rate-limited (100 requests per 15 minutes per IP).  
-- If `EZTUTOR_API_KEY` is set, clients must send `x-api-key` in requests.  
+## 🛡️ Security & Safety
+
+- Input validation (express-validator or custom checks)
+- Rate limiting: 100 requests / 15 minutes per IP
+- JWT auth for protected endpoints
+- bcrypt password hashing
+- Parameterized DB queries (pg) to prevent SQL injection
+- Optional API key gating (`EZTUTOR_API_KEY`)
+
+See `docs/SECURITY.md` for details.
 
 ---
 
-## 📦 Response Shape (Overview)
-- Lesson plan response contains structured fields like `objectives`, `keyPoints`, and `activities`.  
-- Quiz response contains `mcq`, `shortAnswer`, and `essay` arrays with answers, plus `gradeLevel`, `numQuestions`, and `questionWeights`.  
+## 📦 Response Examples
 
----
-
-## 🖥️ User Flow
-1. **Dashboard** → Choose action (Lesson Plan, Quiz, Resource Upload)  
-2. **Lesson Plan Generator** → Input subject/topic → AI output → Export  
-3. **Quiz Generator** → Input topic/difficulty → AI output → Export  
-4. **Resource Hub** → Upload + search resources  
-
----
-
-## 🧭 Client ↔ Server Notes
-- The React app uses a CRA proxy to `http://localhost:5000`.  
-- Client calls should use the `/api/...` prefix to reach the backend.  
-- For production, set `REACT_APP_API_BASE` to your backend URL (e.g., `https://eztutor.onrender.com`).  
+Lesson plan example and quiz schema are in `docs/api-schema.md`.
 
 ---
 
 ## ✅ Testing
-- Backend tests:  
-  - From `server/`, run `npm test`  
 
----
+```bash
+# Backend
+cd server && npm test
 
-## 📚 Documentation
-- `docs/architecture.md` → system overview and data flow  
-- `docs/api-schema.md` → response schema overview  
-- `docs/DEPLOYMENT.md` → production deployment guide  
-- `docs/SECURITY.md` → security and API key notes  
-
----
-
-## 🧾 Legal & Support Pages
-- `/privacy` → Privacy Policy  
-- `/terms` → Terms of Service  
-- `/cookies` → Cookie Policy  
-- `/support` → Support  
-- `/contact` → Contact  
-
----
-
-## 🩺 Health Check
-- `GET /health` returns uptime and a timestamp for monitoring.  
-- `GET /health/groq` checks for Groq API key availability.  
-
----
-
-## 🧯 Troubleshooting
-- **400 model decommissioned**: update `GROQ_MODEL` to a supported Groq model (see Groq deprecations).  
-- **401/403 invalid API key**: verify `GROQ_API_KEY` on the server and redeploy.  
-- **429 quota exceeded**: switch to template mode (`EZTUTOR_MODE=template`) or reduce requests.  
-- **Postgres connection errors**: confirm `DATABASE_URL` (preferred) or `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and inbound access.  
-- **Frontend can’t reach API**: set `REACT_APP_API_BASE` to your deployed backend URL.  
-
----
-
-## 📛 Status Badge
-Use this snippet in your README or docs to show health status (replace the URL with your deployed host):
-```md
-![Health](https://img.shields.io/badge/health-online-brightgreen)
+# Frontend
+cd client && npm test
 ```
 
 ---
 
-## 🎨 Styling
-- TailwindCSS is configured in `client/` with PostCSS.  
-- Global styles live in `client/src/index.css`.  
-- A lightweight theme system is provided using CSS variables and custom classes.  
-- Fonts are set to Playfair Display for headings and Space Grotesk for body text.  
-- Tailwind tokens are mapped in `client/tailwind.config.js` for brand colors.  
-- Animations include staggered card reveals and shimmer skeletons.  
-- UI now includes a sticky nav, hero section, and polished form panels.  
-- A shared layout component provides consistent navigation across pages.  
-- Dashboard includes “Recent outputs” and quick-start suggestions.  
+## 📚 Documentation
 
----
-
-## 🔐 Authentication
-- Sign up and login with email + password (JWT).  
-- Tokens are stored in `localStorage` and sent via `Authorization: Bearer <token>`.  
-- Recents are scoped per user in Postgres, and the dashboard can clear them with one click.  
-
----
-
-## ⚡ Performance Notes
-- Server responses are compressed via `compression`.  
-- Production builds disable sourcemaps via `client/.env.production`.  
-- Server logs include latency and response size buckets.  
-
----
-
-## 📈 Roadmap
-- ✅ MVP: Lesson Planner + Quiz Generator + Resource Organizer  
-- 🔜 Next: File storage integration, grading, analytics, collaboration tools  
-- 🔮 Future: Teacher-student portal, AI-driven feedback, adaptive learning  
+See `docs/architecture.md`, `docs/DEPLOYMENT.md`, `docs/api-schema.md`, and `docs/SECURITY.md`.
 
 ---
 
 ## 🤝 Contributing
-1. Fork the repo  
-2. Create a feature branch (`git checkout -b feature-name`)  
-3. Commit changes (`git commit -m 'Add feature'`)  
-4. Push branch (`git push origin feature-name`)  
-5. Open a Pull Request  
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Run tests and add coverage
+4. Open a PR describing your changes
+
+Please follow commit hygiene and include tests for new features.
 
 ---
 
 ## 📜 License
-MIT License – free to use, modify, and distribute.
+
+MIT — see LICENSE file for details.
 
 ---
+
+If you want, I can also:
+- apply the `FOLDER_STRUCTURE_GUIDE.md` changes,
+- add `server/constants.js` and `client/src/services/api.js`,
+- or create the `.env.example` file.

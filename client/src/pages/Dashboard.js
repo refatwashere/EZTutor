@@ -1,23 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [recent, setRecent] = useState([]);
+  const { addToast } = useNotification();
+  const { user } = useOutletContext() || {};
+  const [quizPrefs, setQuizPrefs] = useState({
+    gradeLevel: 'Grade 7',
+    numQuestions: 10,
+    weightPreset: 'balanced',
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem('eztutor_recent_outputs');
-    if (stored) {
+    try {
+      const stored = localStorage.getItem('eztutor_quiz_prefs');
+      if (!stored) return;
+      const prefs = JSON.parse(stored);
+      setQuizPrefs((prev) => ({
+        ...prev,
+        ...prefs,
+      }));
+    } catch (err) {
+      // ignore malformed prefs
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadRecents = async () => {
+      if (!user) return setRecent([]);
+      const token = localStorage.getItem('eztutor_token');
+      if (!token) return setRecent([]);
       try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecent(parsed);
-        }
+        const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/recents`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setRecent(data.recents || []);
       } catch (err) {
         setRecent([]);
       }
-    }
-  }, []);
+    };
+    loadRecents();
+  }, [user]);
 
   return (
     <main className="page">
@@ -90,7 +116,46 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        {/* Custom Content Section */}
+        <div className="border-t pt-10">
+          <h2 className="text-2xl font-bold mb-4">Your Content</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/my-lessons')}
+            >
+              <div className="text-lg font-semibold">My Lesson Plans</div>
+              <div className="text-sm text-gray-600">View and edit all your saved lesson plans</div>
+              <div className="text-xs text-gray-500">📚 View all</div>
+            </button>
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/custom-lesson')}
+            >
+              <div className="text-lg font-semibold">Create Lesson from Scratch</div>
+              <div className="text-sm text-gray-600">Build a custom lesson plan with full control</div>
+              <div className="text-xs text-gray-500">✏️ Create new</div>
+            </button>
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/my-quizzes')}
+            >
+              <div className="text-lg font-semibold">My Quizzes</div>
+              <div className="text-sm text-gray-600">View and edit all your saved quizzes</div>
+              <div className="text-xs text-gray-500">📝 View all</div>
+            </button>
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/custom-quiz')}
+            >
+              <div className="text-lg font-semibold">Create Quiz from Scratch</div>
+              <div className="text-sm text-gray-600">Build a custom quiz with full editing</div>
+              <div className="text-xs text-gray-500">✏️ Create new</div>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="card section-card space-y-3">
             <div className="text-sm text-gray-500">How it works</div>
             <ol className="list-decimal pl-6 text-gray-700 space-y-2">
@@ -100,17 +165,91 @@ export default function Dashboard() {
             </ol>
           </div>
           <div className="card section-card space-y-3">
+            <div className="text-sm text-gray-500">Get started</div>
+            <div className="text-gray-700">Try one of these quick starts:</div>
+            <div className="flex flex-wrap gap-2">
+              <button className="pill" onClick={() => navigate('/lesson')}>
+                Math • Fractions
+              </button>
+              <button className="pill" onClick={() => navigate('/lesson')}>
+                Science • Photosynthesis
+              </button>
+              <button className="pill" onClick={() => navigate('/quiz')}>
+                History • Renaissance
+              </button>
+            </div>
+          </div>
+          <div className="card section-card space-y-3">
             <div className="text-sm text-gray-500">Designed for clarity</div>
             <div className="text-gray-700">
               Every output is sectioned and ready to use. Save time without sacrificing
               instructional quality.
             </div>
           </div>
+          <div className="card section-card space-y-3">
+            <div className="text-sm text-gray-500">Quiz settings</div>
+            <input
+              className="input w-full"
+              placeholder="Grade level"
+              value={quizPrefs.gradeLevel}
+              onChange={(e) =>
+                setQuizPrefs((prev) => ({ ...prev, gradeLevel: e.target.value }))
+              }
+            />
+            <input
+              className="input w-full"
+              type="number"
+              min="5"
+              max="25"
+              value={quizPrefs.numQuestions}
+              onChange={(e) =>
+                setQuizPrefs((prev) => ({ ...prev, numQuestions: e.target.value }))
+              }
+            />
+            <select
+              className="input w-full"
+              value={quizPrefs.weightPreset}
+              onChange={(e) =>
+                setQuizPrefs((prev) => ({ ...prev, weightPreset: e.target.value }))
+              }
+            >
+              <option value="balanced">Balanced mix</option>
+              <option value="mcqHeavy">More multiple choice</option>
+              <option value="writingHeavy">More writing</option>
+            </select>
+            <button
+              className="btn btn-outline"
+              onClick={() => {
+                  localStorage.setItem('eztutor_quiz_prefs', JSON.stringify(quizPrefs));
+                  addToast('Quiz settings saved.', 'success');
+                  navigate('/quiz');
+                }}
+            >
+              Use in Quiz
+            </button>
+            <button
+              className="btn btn-outline"
+              onClick={() => {
+                const defaults = {
+                  gradeLevel: 'Grade 7',
+                  numQuestions: 10,
+                  weightPreset: 'balanced',
+                };
+                setQuizPrefs(defaults);
+                localStorage.removeItem('eztutor_quiz_prefs');
+                addToast('Quiz settings reset.', 'success');
+              }}
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
         <div className="card section-card space-y-3">
           <div className="text-sm text-gray-500">Recent outputs</div>
-          {recent.length === 0 ? (
+          {!user ? (
+            <div className="text-gray-600">Sign in to save and view your recent outputs.</div>
+          ) : recent.length === 0 ? (
             <div className="text-gray-600">
               No recent items yet. Generate a lesson or quiz to see it here.
             </div>
@@ -132,8 +271,26 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
+          {user && recent.length > 0 && (
+            <button
+              className="btn btn-outline"
+              onClick={async () => {
+                const token = localStorage.getItem('eztutor_token');
+                if (!token) return;
+                await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/recents`, {
+                  method: 'DELETE',
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                setRecent([]);
+                addToast('Recents cleared.', 'success');
+              }}
+            >
+              Clear Recents
+            </button>
+          )}
         </div>
       </div>
+    
     </main>
   );
 }

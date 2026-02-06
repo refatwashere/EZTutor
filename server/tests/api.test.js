@@ -2,6 +2,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
 
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'testsecret';
+
 const app = require('../index');
 
 test('GET /api returns status payload', async () => {
@@ -30,10 +33,65 @@ test('POST /api/generate-quiz rejects invalid difficulty', async () => {
   assert.equal(res.body.error, 'difficulty must be one of: basic, intermediate, advanced');
 });
 
+test('POST /api/support validates input', async () => {
+  const bad = await request(app).post('/api/support').send({});
+  assert.equal(bad.statusCode, 400);
+
+  const ok = await request(app)
+    .post('/api/support')
+    .send({ name: 'Alex', email: 'teacher@example.com', topic: 'Bug report', message: 'Help' });
+  assert.equal(ok.statusCode, 200);
+  assert.equal(ok.body.ok, true);
+});
+
 test('GET /health returns uptime and timestamp', async () => {
   const res = await request(app).get('/health');
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.status, 'ok');
   assert.equal(typeof res.body.uptimeSeconds, 'number');
   assert.equal(typeof res.body.timestamp, 'string');
+});
+
+test('Auth signup/login and recents flow', async (t) => {
+  if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+    t.skip('DATABASE_URL/DB_HOST not set for tests');
+    return;
+  }
+  const signup = await request(app)
+    .post('/api/auth/signup')
+    .send({ email: 'teacher@example.com', password: 'password123' });
+  assert.equal(signup.statusCode, 200);
+  assert.ok(signup.body.token);
+
+  const login = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'teacher@example.com', password: 'password123' });
+  assert.equal(login.statusCode, 200);
+  assert.ok(login.body.token);
+
+  const token = login.body.token;
+
+  const me = await request(app)
+    .get('/api/auth/me')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(me.statusCode, 200);
+  assert.equal(me.body.email, 'teacher@example.com');
+
+  const create = await request(app)
+    .post('/api/recents')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ type: 'lesson', title: 'Lesson Plan', subtitle: 'Math • Fractions' });
+  assert.equal(create.statusCode, 201);
+
+  const list = await request(app)
+    .get('/api/recents')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(list.statusCode, 200);
+  assert.equal(Array.isArray(list.body.recents), true);
+  assert.equal(list.body.recents.length, 1);
+
+  const clear = await request(app)
+    .delete('/api/recents')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(clear.statusCode, 200);
 });

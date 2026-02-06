@@ -84,6 +84,11 @@ cd client
 npm run build
 ```
 
+### GitHub Pages (Client Only)
+- Client URL: `https://refatwashere.github.io/EZTutor/`
+- Backend URL: `https://eztutor.onrender.com`
+- Routing uses hash URLs (`/#/route`) for GitHub Pages compatibility.
+
 ### Database Setup
 
 1. **Create database:**

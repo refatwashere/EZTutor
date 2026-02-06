@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import LessonPlan from './pages/LessonPlan';
 import QuizGenerator from './pages/QuizGenerator';
@@ -70,7 +70,7 @@ function AppContent() {
   }, [addToast]);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Dashboard />} />
@@ -95,7 +95,7 @@ function AppContent() {
           <Route path="quizzes/:id/edit" element={<EditQuiz />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

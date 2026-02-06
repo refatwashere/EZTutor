@@ -136,6 +136,11 @@ To export lessons and quizzes to Google Drive:
 
 See [Quick Reference](docs/GOOGLE_CLOUD_QUICK_REF.md) for a condensed checklist and [Integration Checklist](docs/INTEGRATION_CHECKLIST.md) for detailed verification steps.
 
+### GitHub Pages (Client Only)
+- Client URL: `https://refatwashere.github.io/EZTutor/`
+- This deploys only the frontend (static build). The backend remains at `https://eztutor.onrender.com`.
+- Routing uses hash URLs (`/#/route`) to avoid 404s on GitHub Pages.
+
 ---
 
 ## 🔗 API Endpoints

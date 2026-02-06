@@ -83,7 +83,7 @@ export default function CustomLessonPlan() {
         differentiation: differentiation.filter((d) => d.trim()),
       };
 
-      const res = await axios.post(
+      await axios.post(
         '/api/lesson-plans',
         { title, description, subject, topic, content },
         {

@@ -8,7 +8,6 @@ import { useNotification } from '../context/NotificationContext';
 export default function EditQuiz() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [quiz, setQuiz] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [topic, setTopic] = useState('');
@@ -27,15 +26,7 @@ export default function EditQuiz() {
   const token = localStorage.getItem('eztutor_token');
   const isEditMode = id !== 'new';
 
-  useEffect(() => {
-    if (isEditMode) {
-      loadQuiz();
-    } else {
-      setLoading(false);
-    }
-  }, [id]);
-
-  const loadQuiz = async () => {
+  const loadQuiz = React.useCallback(async () => {
     try {
       const res = await axios.get(`/api/quizzes/${id}`, {
         baseURL: process.env.REACT_APP_API_BASE || '',
@@ -43,22 +34,28 @@ export default function EditQuiz() {
       });
 
       const q = res.data.quiz;
-      setQuiz(q);
       setTitle(q.title);
       setDescription(q.description || '');
       setTopic(q.topic);
       setDifficulty(q.difficulty || 'basic');
-      setGradeLevel(q.grade_level || '');
-      setMcqs(q.content?.mcq || [{ question: '', options: ['', '', ''], answerIndex: 0, explanation: '' }]);
-      setShortAnswers(q.content?.shortAnswer || [{ question: '', sampleAnswer: '' }]);
-      setEssays(q.content?.essay || [{ question: '', guidance: '' }]);
-      setError('');
+      setGradeLevel(q.gradeLevel || '');
+      if (q.content?.mcq?.length > 0) setMcqs(q.content.mcq);
+      if (q.content?.shortAnswer?.length > 0) setShortAnswers(q.content.shortAnswer);
+      if (q.content?.essay?.length > 0) setEssays(q.content.essay);
+      setLoading(false);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to load quiz');
-    } finally {
       setLoading(false);
     }
-  };
+  }, [id, token]);
+
+  useEffect(() => {
+    if (isEditMode) {
+      loadQuiz();
+    } else {
+      setLoading(false);
+    }
+  }, [isEditMode, loadQuiz]);
 
   const updateMcq = (index, field, value) => {
     const updated = [...mcqs];
@@ -181,7 +178,6 @@ export default function EditQuiz() {
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
-        {toast && <div className="alert alert-success">{toast}</div>}
 
         <div className="card section-card space-y-6">
           {/* Basic Info */}

@@ -16,6 +16,7 @@ import MyQuizzes from './pages/MyQuizzes';
 import EditLessonPlan from './pages/EditLessonPlan';
 import EditQuiz from './pages/EditQuiz';
 import AppLayout from './components/AppLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import { Toast } from './components/Toast';
 
@@ -100,10 +101,12 @@ function AppContent() {
 
 function App() {
   return (
-    <NotificationProvider>
-      <Toast />
-      <AppContent />
-    </NotificationProvider>
+    <ErrorBoundary>
+      <NotificationProvider>
+        <Toast />
+        <AppContent />
+      </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 

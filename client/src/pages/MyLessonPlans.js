@@ -19,11 +19,7 @@ export default function MyLessonPlans() {
 
   const { addToast } = useNotification();
 
-  useEffect(() => {
-    loadLessonPlans();
-  }, []);
-
-  const loadLessonPlans = async () => {
+  const loadLessonPlans = React.useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get('/api/lesson-plans', {
@@ -34,10 +30,15 @@ export default function MyLessonPlans() {
       setError('');
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to load lesson plans');
+      setLessonPlans([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    loadLessonPlans();
+  }, [loadLessonPlans]);
 
   const deleteLessonPlan = async (id) => {
     try {

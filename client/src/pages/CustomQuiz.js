@@ -90,7 +90,7 @@ export default function CustomQuiz() {
         essay: essays.filter((q) => q.question.trim()),
       };
 
-      const res = await axios.post(
+      await axios.post(
         '/api/quizzes',
         {
           title,

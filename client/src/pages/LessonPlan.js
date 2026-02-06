@@ -326,7 +326,6 @@ export default function LessonPlan() {
       {!loading && !lessonPlan && !error && (
         <div className="mt-6 text-gray-600">Generate a lesson plan to see results here.</div>
       )}
-      {toast && <div className="toast">{toast}</div>}
       </div>
     </div>
   );

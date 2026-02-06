@@ -368,7 +368,6 @@ export default function QuizGenerator() {
       {!loading && !quiz && !error && (
         <div className="mt-6 text-gray-600">Generate a quiz to see results here.</div>
       )}
-      {toast && <div className="toast">{toast}</div>}
       </div>
     </div>
   );

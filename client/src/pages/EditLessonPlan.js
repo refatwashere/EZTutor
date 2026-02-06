@@ -8,7 +8,6 @@ import { useNotification } from '../context/NotificationContext';
 export default function EditLessonPlan() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [lessonPlan, setLessonPlan] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
@@ -29,15 +28,7 @@ export default function EditLessonPlan() {
   const token = localStorage.getItem('eztutor_token');
   const isEditMode = id !== 'new';
 
-  useEffect(() => {
-    if (isEditMode) {
-      loadLessonPlan();
-    } else {
-      setLoading(false);
-    }
-  }, [id]);
-
-  const loadLessonPlan = async () => {
+  const loadLessonPlan = React.useCallback(async () => {
     try {
       const res = await axios.get(`/api/lesson-plans/${id}`, {
         baseURL: process.env.REACT_APP_API_BASE || '',
@@ -45,24 +36,30 @@ export default function EditLessonPlan() {
       });
 
       const lp = res.data.lessonPlan;
-      setLessonPlan(lp);
       setTitle(lp.title);
       setDescription(lp.description || '');
-      setSubject(lp.subject);
-      setTopic(lp.topic);
-      setObjectives(lp.content?.objectives || ['']);
-      setKeyPoints(lp.content?.keyPoints || ['']);
-      setActivities(lp.content?.activities || ['']);
-      setAssessmentIdeas(lp.content?.assessmentIdeas || ['']);
-      setMaterials(lp.content?.materials || ['']);
-      setDifferentiation(lp.content?.differentiation || ['']);
-      setError('');
+      setSubject(lp.subject || '');
+      setTopic(lp.topic || '');
+      setObjectives(lp.objectives && lp.objectives.length > 0 ? lp.objectives : ['']);
+      setKeyPoints(lp.keyPoints && lp.keyPoints.length > 0 ? lp.keyPoints : ['']);
+      setActivities(lp.activities && lp.activities.length > 0 ? lp.activities : ['']);
+      setAssessmentIdeas(lp.assessmentIdeas && lp.assessmentIdeas.length > 0 ? lp.assessmentIdeas : ['']);
+      setMaterials(lp.materials && lp.materials.length > 0 ? lp.materials : ['']);
+      setDifferentiation(lp.differentiation && lp.differentiation.length > 0 ? lp.differentiation : ['']);
+      setLoading(false);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to load lesson plan');
-    } finally {
       setLoading(false);
     }
-  };
+  }, [id, token]);
+
+  useEffect(() => {
+    if (isEditMode) {
+      loadLessonPlan();
+    } else {
+      setLoading(false);
+    }
+  }, [isEditMode, loadLessonPlan]);
 
   const handleArrayChange = (index, value, arrayName) => {
     const updates = {
@@ -193,7 +190,6 @@ export default function EditLessonPlan() {
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
-        {toast && <div className="alert alert-success">{toast}</div>}
 
         <div className="card section-card space-y-6">
           {/* Basic Info (same as CustomLessonPlan) */}
@@ -431,41 +427,43 @@ export default function EditLessonPlan() {
               {saving ? 'Saving...' : isEditMode ? 'Update Lesson Plan' : 'Create Lesson Plan'}
             </button>
             {isEditMode && (
-              <button
-                  className="btn btn-secondary"
-                  onClick={() => setConfirmOpen(true)}
-                >
-                  Export to Drive
-                </button>
-              <ConfirmModal
-                open={confirmOpen}
-                title="Export lesson to Google Drive"
-                message="This will export a copy of this lesson to your Google Drive. Proceed?"
-                confirmText="Export"
-                cancelText="Cancel"
-                onCancel={() => setConfirmOpen(false)}
-                onConfirm={async () => {
-                  setConfirmOpen(false);
-                  setExporting(true);
-                  const token = localStorage.getItem('eztutor_token');
-                  if (!token) { setError('Sign in to export'); setExporting(false); return; }
-                  try {
-                    const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/export-to-drive`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ contentType: 'lesson', contentId: id }),
-                    });
-                    const j = await res.json();
-                    if (res.status === 401 && j.redirectUrl) { localStorage.setItem('pendingExport', JSON.stringify({ contentType: 'lesson', contentId: id })); window.location.href = j.redirectUrl; return; }
-                    if (!j.success) throw new Error(j.error || 'Export failed');
-                    if (j.googleDriveUrl) window.open(j.googleDriveUrl, '_blank');
-                    addToast('Exported to Google Drive', 'success');
-                  } catch (err) {
-                    setError(err?.message || 'Export failed');
-                  } finally { setExporting(false); }
-                }}
-              />
-              <LoadingSpinner open={exporting} message="Exporting to Google Drive..." />
+              <>
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setConfirmOpen(true)}
+                  >
+                    Export to Drive
+                  </button>
+                <ConfirmModal
+                  open={confirmOpen}
+                  title="Export lesson to Google Drive"
+                  message="This will export a copy of this lesson to your Google Drive. Proceed?"
+                  confirmText="Export"
+                  cancelText="Cancel"
+                  onCancel={() => setConfirmOpen(false)}
+                  onConfirm={async () => {
+                    setConfirmOpen(false);
+                    setExporting(true);
+                    const token = localStorage.getItem('eztutor_token');
+                    if (!token) { setError('Sign in to export'); setExporting(false); return; }
+                    try {
+                      const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/export-to-drive`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ contentType: 'lesson', contentId: id }),
+                      });
+                      const j = await res.json();
+                      if (res.status === 401 && j.redirectUrl) { localStorage.setItem('pendingExport', JSON.stringify({ contentType: 'lesson', contentId: id })); window.location.href = j.redirectUrl; return; }
+                      if (!j.success) throw new Error(j.error || 'Export failed');
+                      if (j.googleDriveUrl) window.open(j.googleDriveUrl, '_blank');
+                      addToast('Exported to Google Drive', 'success');
+                    } catch (err) {
+                      setError(err?.message || 'Export failed');
+                    } finally { setExporting(false); }
+                  }}
+                />
+                <LoadingSpinner open={exporting} message="Exporting to Google Drive..." />
+              </>
             )}
             <button className="btn btn-outline" onClick={() => navigate(-1)}>
               Cancel

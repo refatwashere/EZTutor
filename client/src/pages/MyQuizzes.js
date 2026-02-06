@@ -18,11 +18,7 @@ export default function MyQuizzes() {
   const token = localStorage.getItem('eztutor_token');
   const { addToast } = useNotification();
 
-  useEffect(() => {
-    loadQuizzes();
-  }, []);
-
-  const loadQuizzes = async () => {
+  const loadQuizzes = React.useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get('/api/quizzes', {
@@ -33,10 +29,15 @@ export default function MyQuizzes() {
       setError('');
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to load quizzes');
+      setQuizzes([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    loadQuizzes();
+  }, [loadQuizzes]);
 
   const deleteQuiz = async (id) => {
     try {

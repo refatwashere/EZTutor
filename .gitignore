@@ -19,6 +19,10 @@ pnpm-lock.yaml
 .env.local
 .env.*.local
 !*.example
+server/credentials/
+!server/credentials/
+!server/credentials/README.md
+!server/credentials/client_secret.example.json
 
 # Build outputs
 dist/

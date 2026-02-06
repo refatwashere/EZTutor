@@ -1,2 +1,5 @@
 credentials/
+!credentials/
+!credentials/README.md
+!credentials/client_secret.example.json
 *.key.json

@@ -25,6 +25,11 @@
    - Server package installation (`server/npm install`)
    - Client package installation (`client/npm install`)
 
+#### Install Policy
+- Root is dependency‑free and only contains orchestration scripts.
+- Install dependencies in `server/` and `client/` (or use `npm run install-all` from root).
+- Avoid keeping a root `node_modules/` to prevent confusion and bloat.
+
 3. **Environment Setup**
 
    **Server (.env):**

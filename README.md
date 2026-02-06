@@ -120,6 +120,11 @@ npm install
 npm start
 ```
 
+### Install Policy
+- Root is dependency‑free and only contains orchestration scripts.
+- Install dependencies in `server/` and `client/` (or use `npm run install-all` from root).
+- Avoid keeping a root `node_modules/` to prevent confusion and bloat.
+
 Frontend runs at `http://localhost:3000`, API at `http://localhost:5000`.
 
 ### Enable Google Drive Integration (Optional)

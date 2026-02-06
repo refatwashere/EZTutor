@@ -4,12 +4,12 @@
 
 ## 📊 Current State vs. Target State
 
-### Current Issues ⚠️
+### Previous Issues (Resolved) ⚠️
 
 ```
-CURRENT STRUCTURE (Problems)
+PREVIOUS STRUCTURE (Resolved)
 ├── ROOT PACKAGE.JSON
-│   └── Has server dependencies (WRONG)
+│   └── Simple scripts, no workspace orchestration
 │
 ├── SERVER
 │   ├── controller/          🔴 EMPTY FOLDER - DELETE
@@ -105,54 +105,37 @@ server/
 
 ---
 
-### Issue #2: Server Dependencies in Root package.json
+### Issue #2: Root Scripts Don't Match Workspace Template
 
 **Location**: Root `package.json`  
-**Problem**: Server dependencies listed at root level  
-**Impact**: Bloats root, causes confusion about dependencies  
+**Problem**: Guide shows a workspace/concurrently setup, but repo uses simple scripts  
+**Impact**: Documentation drift and onboarding confusion  
 
-**Current (Wrong)**:
-```json
-{
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.6",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "express-rate-limit": "^7.5.1",
-    "groq-sdk": "^0.7.0",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.0"
-  }
-}
-```
-
-**Fixed (Correct)**:
+**Current (Correct)**:
 ```json
 {
   "name": "eztutor",
   "version": "1.0.0",
   "description": "AI-powered teacher productivity suite",
+  "main": "server/index.js",
   "private": true,
-  "workspaces": ["client", "server"],
   "scripts": {
-    "start": "concurrently \"npm run start-server\" \"npm run start-client\"",
+    "start": "npm run start-server",
     "start-server": "cd server && npm start",
     "start-client": "cd client && npm start",
-    "test": "npm --workspace=server test",
-    "install-all": "npm install && npm --workspace=client install && npm --workspace=server install"
-  },
-  "devDependencies": {
-    "concurrently": "^8.0.0"
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm start",
+    "test": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   }
 }
 ```
 
 **Why**:
-- Each workspace (client/server) manages its own dependencies
-- Root only manages workspace orchestration
-- Clearer dependency boundaries
-- Easier to maintain and upgrade
+- Root stays dependency‑free and delegates to client/server
+- Scripts are explicit and easy to follow
+- Works without workspace tooling
 
 ---
 

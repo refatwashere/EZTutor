@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import ConfirmModal from '../components/ConfirmModal';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useNotification } from '../context/NotificationContext';
 
 export default function QuizGenerator() {
   const [topic, setTopic] = useState('');
@@ -10,8 +13,10 @@ export default function QuizGenerator() {
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState('');
   const [prefsNotice, setPrefsNotice] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { addToast } = useNotification();
   const [recentTopics] = useState([
     { topic: 'Renaissance', difficulty: 'intermediate' },
     { topic: 'Electric Circuits', difficulty: 'basic' },
@@ -63,8 +68,7 @@ export default function QuizGenerator() {
         `Quiz: ${res.data.quiz?.topic || topic}`,
         `${gradeLevel} • ${difficulty}`
       );
-      setToast('Quiz saved to recents.');
-      setTimeout(() => setToast(''), 2000);
+      addToast('Quiz generated and saved to recents.', 'success');
     } catch (err) {
       const message =
         err?.response?.data?.error ||
@@ -120,10 +124,9 @@ export default function QuizGenerator() {
     if (!quiz) return;
     try {
       await navigator.clipboard.writeText(formatQuizText(quiz));
-      setToast('Quiz copied.');
-      setTimeout(() => setToast(''), 2000);
+      addToast('Quiz copied to clipboard.', 'success');
     } catch (err) {
-      setError('Failed to copy to clipboard.');
+      addToast('Failed to copy to clipboard.', 'error');
     }
   };
 
@@ -137,8 +140,7 @@ export default function QuizGenerator() {
     a.download = `${(quiz?.topic || topic || 'quiz').replace(/\s+/g, '_')}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
-    setToast('Quiz downloaded.');
-    setTimeout(() => setToast(''), 2000);
+    addToast('Quiz downloaded.', 'success');
   };
 
   const canSubmit = topic.trim() && difficulty && gradeLevel.trim() && !loading;
@@ -238,6 +240,51 @@ export default function QuizGenerator() {
         <button className="btn btn-outline" onClick={handleDownload} disabled={!quiz}>
           Download
         </button>
+        <button className="btn btn-secondary" onClick={() => setConfirmOpen(true)} disabled={!quiz}>
+          Export to Google Drive
+        </button>
+        <ConfirmModal
+          open={confirmOpen}
+          title="Export quiz to Google Drive"
+          message="This will save the quiz to your library and export a copy to your Google Drive. Proceed?"
+          confirmText="Export"
+          cancelText="Cancel"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            setConfirmOpen(false);
+            setExporting(true);
+            const token = localStorage.getItem('eztutor_token');
+            if (!token) { setError('Please sign in to save and export.'); setExporting(false); return; }
+            try {
+              const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/quizzes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ title: quiz.title || `Quiz: ${quiz.topic || topic}`, description: quiz.description || '', content: { ...quiz, topic } }),
+              });
+              if (res.status === 401) throw new Error('Authentication required to save content.');
+              const saved = await res.json();
+              if (!saved || !saved.id) throw new Error('Failed to save quiz before export.');
+              const ex = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/export-to-drive`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ contentType: 'quiz', contentId: saved.id }),
+              });
+              const exJson = await ex.json();
+              if (ex.status === 401 && exJson && exJson.redirectUrl) { 
+                // store pending export so we can resume after OAuth
+                localStorage.setItem('pendingExport', JSON.stringify({ contentType: 'quiz', contentId: saved.id }));
+                window.location.href = exJson.redirectUrl; 
+                return; 
+              }
+              if (!exJson || !exJson.success) throw new Error(exJson?.error || 'Export failed');
+              addToast('Exported to Google Drive successfully!', 'success');
+              if (exJson.googleDriveUrl) window.open(exJson.googleDriveUrl, '_blank');
+            } catch (err) {
+              setError(err?.message || 'Export failed.');
+            } finally { setExporting(false); }
+          }}
+        />
+        <LoadingSpinner open={exporting} message="Exporting to Google Drive..." />
       </div>
       </div>
 

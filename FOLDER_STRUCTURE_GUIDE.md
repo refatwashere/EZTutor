@@ -158,19 +158,13 @@ server/
 
 ### Issue #3: Service Naming Confusion
 
-**File**: `server/services/openaiService.js`  
+**File**: `server/services/groqService.js` (RESOLVED ✅)  
 **Problem**: Named "openai" but uses Groq API  
 **Impact**: Confuses developers about which service is being used  
-**Fix**: Rename to `groqService.js`
-
-```bash
-# Rename the file
-mv server/services/openaiService.js server/services/groqService.js
-
-# Update imports in controllers
-# OLD: const openaiService = require('../services/openaiService');
-# NEW: const groqService = require('../services/groqService');
-```
+**Status**: File renamed from `openaiService.js`. All imports updated in:
+  - `server/controllers/lessonController.js`
+  - `server/controllers/quizController.js`
+**Tests**: All 6 tests pass after refactoring
 
 ---
 

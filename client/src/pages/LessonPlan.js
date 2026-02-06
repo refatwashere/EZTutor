@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import ConfirmModal from '../components/ConfirmModal';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useNotification } from '../context/NotificationContext';
 
 export default function LessonPlan() {
   const [subject, setSubject] = useState('');
@@ -7,7 +10,9 @@ export default function LessonPlan() {
   const [lessonPlan, setLessonPlan] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { addToast } = useNotification();
   const [recentInputs] = useState([
     { subject: 'Math', topic: 'Fractions' },
     { subject: 'Science', topic: 'Photosynthesis' },
@@ -28,8 +33,7 @@ export default function LessonPlan() {
       );
       setLessonPlan(res.data.lessonPlan);
       await saveRecent('lesson', res.data.lessonPlan?.title || 'Lesson Plan', `${subject} • ${topic}`);
-      setToast('Lesson plan saved to recents.');
-      setTimeout(() => setToast(''), 2000);
+      addToast('Lesson plan generated and saved to recents.', 'success');
     } catch (err) {
       const message =
         err?.response?.data?.error ||
@@ -84,10 +88,9 @@ export default function LessonPlan() {
     if (!lessonPlan) return;
     try {
       await navigator.clipboard.writeText(formatLessonPlanText(lessonPlan));
-      setToast('Lesson plan copied.');
-      setTimeout(() => setToast(''), 2000);
+      addToast('Lesson plan copied to clipboard.', 'success');
     } catch (err) {
-      setError('Failed to copy to clipboard.');
+      addToast('Failed to copy to clipboard.', 'error');
     }
   };
 
@@ -101,8 +104,7 @@ export default function LessonPlan() {
     a.download = `${(lessonPlan?.topic || topic || 'lesson-plan').replace(/\s+/g, '_')}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
-    setToast('Lesson plan downloaded.');
-    setTimeout(() => setToast(''), 2000);
+    addToast('Lesson plan downloaded.', 'success');
   };
 
   const canSubmit = subject.trim() && topic.trim() && !loading;
@@ -176,6 +178,57 @@ export default function LessonPlan() {
         <button className="btn btn-outline" onClick={handleDownload} disabled={!lessonPlan}>
           Download
         </button>
+        <button className="btn btn-secondary" onClick={() => setConfirmOpen(true)} disabled={!lessonPlan}>
+          Export to Google Drive
+        </button>
+        <ConfirmModal
+          open={confirmOpen}
+          title="Export lesson plan to Google Drive"
+          message="This will save the lesson to your library and export a copy to your Google Drive. Proceed?"
+          confirmText="Export"
+          cancelText="Cancel"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            setConfirmOpen(false);
+            setExporting(true);
+            const token = localStorage.getItem('eztutor_token');
+            if (!token) {
+              setError('Please sign in to save and export.');
+              setExporting(false);
+              return;
+            }
+            try {
+              const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/lesson-plans`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ title: lessonPlan.title || `${subject} - ${topic}`, description: lessonPlan.description || '', content: { ...lessonPlan, subject, topic } }),
+              });
+              if (res.status === 401) throw new Error('Authentication required to save content.');
+              const saved = await res.json();
+              if (!saved || !saved.id) throw new Error('Failed to save lesson before export.');
+              const ex = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/export-to-drive`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ contentType: 'lesson', contentId: saved.id }),
+              });
+              const exJson = await ex.json();
+              if (ex.status === 401 && exJson && exJson.redirectUrl) {
+                localStorage.setItem('pendingExport', JSON.stringify({ contentType: 'lesson', contentId: saved.id }));
+                window.location.href = exJson.redirectUrl;
+                return;
+              }
+              if (!exJson || !exJson.success) throw new Error(exJson?.error || 'Export failed');
+              addToast('Exported to Google Drive successfully!', 'success');
+              if (exJson.googleDriveUrl) window.open(exJson.googleDriveUrl, '_blank');
+            } catch (err) {
+              setError(err?.message || 'Export failed.');
+              addToast(err?.message || 'Export failed.', 'error');
+            } finally {
+              setExporting(false);
+            }
+          }}
+        />
+        <LoadingSpinner open={exporting} message="Exporting to Google Drive..." />
       </div>
       </div>
 

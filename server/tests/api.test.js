@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
 
+process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'testsecret';
 
 const app = require('../index');

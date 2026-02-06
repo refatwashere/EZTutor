@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [recent, setRecent] = useState([]);
-  const [toast, setToast] = useState('');
+  const { addToast } = useNotification();
   const { user } = useOutletContext() || {};
   const [quizPrefs, setQuizPrefs] = useState({
     gradeLevel: 'Grade 7',
@@ -115,6 +116,45 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* Custom Content Section */}
+        <div className="border-t pt-10">
+          <h2 className="text-2xl font-bold mb-4">Your Content</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/my-lessons')}
+            >
+              <div className="text-lg font-semibold">My Lesson Plans</div>
+              <div className="text-sm text-gray-600">View and edit all your saved lesson plans</div>
+              <div className="text-xs text-gray-500">📚 View all</div>
+            </button>
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/custom-lesson')}
+            >
+              <div className="text-lg font-semibold">Create Lesson from Scratch</div>
+              <div className="text-sm text-gray-600">Build a custom lesson plan with full control</div>
+              <div className="text-xs text-gray-500">✏️ Create new</div>
+            </button>
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/my-quizzes')}
+            >
+              <div className="text-lg font-semibold">My Quizzes</div>
+              <div className="text-sm text-gray-600">View and edit all your saved quizzes</div>
+              <div className="text-xs text-gray-500">📝 View all</div>
+            </button>
+            <button
+              className="card section-card text-left space-y-2 hover:shadow-lg transition"
+              onClick={() => navigate('/custom-quiz')}
+            >
+              <div className="text-lg font-semibold">Create Quiz from Scratch</div>
+              <div className="text-sm text-gray-600">Build a custom quiz with full editing</div>
+              <div className="text-xs text-gray-500">✏️ Create new</div>
+            </button>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="card section-card space-y-3">
             <div className="text-sm text-gray-500">How it works</div>
@@ -180,11 +220,10 @@ export default function Dashboard() {
             <button
               className="btn btn-outline"
               onClick={() => {
-                localStorage.setItem('eztutor_quiz_prefs', JSON.stringify(quizPrefs));
-                setToast('Quiz settings saved.');
-                setTimeout(() => setToast(''), 2000);
-                navigate('/quiz');
-              }}
+                  localStorage.setItem('eztutor_quiz_prefs', JSON.stringify(quizPrefs));
+                  addToast('Quiz settings saved.', 'success');
+                  navigate('/quiz');
+                }}
             >
               Use in Quiz
             </button>
@@ -198,8 +237,7 @@ export default function Dashboard() {
                 };
                 setQuizPrefs(defaults);
                 localStorage.removeItem('eztutor_quiz_prefs');
-                setToast('Quiz settings reset.');
-                setTimeout(() => setToast(''), 2000);
+                addToast('Quiz settings reset.', 'success');
               }}
             >
               Reset
@@ -244,8 +282,7 @@ export default function Dashboard() {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 setRecent([]);
-                setToast('Recents cleared.');
-                setTimeout(() => setToast(''), 2000);
+                addToast('Recents cleared.', 'success');
               }}
             >
               Clear Recents
@@ -253,7 +290,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-      {toast && <div className="toast">{toast}</div>}
+    
     </main>
   );
 }

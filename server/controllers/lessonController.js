@@ -1,4 +1,4 @@
-const openaiService = require('../services/openaiService');
+const groqService = require('../services/groqService');
 
 const MAX_SUBJECT_LENGTH = 100;
 const MAX_TOPIC_LENGTH = 200;
@@ -18,7 +18,7 @@ async function generateLesson(req, res, next) {
       });
     }
 
-    const lessonPlan = await openaiService.generateLessonPlan({ subject, topic });
+    const lessonPlan = await groqService.generateLessonPlan({ subject, topic });
     res.json({ lessonPlan });
   } catch (err) {
     next(err);

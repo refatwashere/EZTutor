@@ -1,4 +1,4 @@
-const openaiService = require('../services/openaiService');
+const groqService = require('../services/groqService');
 
 const MAX_TOPIC_LENGTH = 200;
 const MAX_GRADE_LENGTH = 50;
@@ -54,7 +54,7 @@ async function generateQuiz(req, res, next) {
       });
     }
 
-    const quiz = await openaiService.generateQuiz({
+    const quiz = await groqService.generateQuiz({
       topic,
       difficulty,
       gradeLevel,
